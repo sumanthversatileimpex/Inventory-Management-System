@@ -7,11 +7,11 @@ import {
 } from '@mui/material';
 
 const columns = [
-  { id: 'client_name', label: 'Client Name', type: 'text', placeholder: 'Client Name' },
+  // { id: 'client_name', label: 'Client Name', type: 'text', placeholder: 'Client Name' },
   { id: 'format_importer', label: 'Format Importer', type: 'text', placeholder: 'Format Importer' },
-  { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number', placeholder: 'Bill Of Entry Number', rules: { min: 1 } },
+  { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number', placeholder: 'Bill Of Entry No.', rules: { min: 1 } },
   { id: 'bill_of_entry_date', label: 'Bill of Entry Date', type: 'date', placeholder: 'Bill Of Entry Date' },
-  { id: 'invoice_no', label: 'Invoice No', type: 'text', placeholder: 'Invoice Number' },
+  { id: 'invoice_no', label: 'Invoice Number', type: 'text', placeholder: 'Invoice No.' },
   { id: 'invoice_serial', label: 'Invoice Serial', type: 'text', placeholder: 'Invoice Serial' },
   { id: 'customs_station', label: 'Customs Station', type: 'text', placeholder: 'Customs Station' },
   { id: 'bond_no', label: 'Bond No', type: 'number', placeholder: 'Bond Number', rules: { min: 1 } },
@@ -42,6 +42,7 @@ const ReceiptsTable = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   const staticColumns = [
+    'format_importer',
     'bill_of_entry_number',
     'bill_of_entry_date',
     'customs_station',
@@ -101,7 +102,7 @@ const ReceiptsTable = () => {
       return;
     }
 
-    const { error } = await supabase.from('reciept1').insert(data.map(({ id, ...row }) => row));
+    const { error } = await supabase.from('reciept1_duplicate').insert(data.map(({ id, ...row }) => row));
 
     if (error) {
       setSnackbarMessage('Submission failed!');

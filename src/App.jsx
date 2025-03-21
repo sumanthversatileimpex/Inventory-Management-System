@@ -30,7 +30,7 @@ const App = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md")); // Detect small screens
+  const isMobile = useMediaQuery(theme.breakpoints.down("md")); 
 
   useEffect(() => {
     document.title = "Inventory Management System";

@@ -8,7 +8,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 
 const columns = [
-  { id: 'client_name', label: 'Client Name', type: 'text' },
+  // { id: 'client_name', label: 'Client Name', type: 'text' },
   { id: 'format_importer', label: 'Format Importer', type: 'text' },
   { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number' },
   { id: 'bill_of_entry_date', label: 'Bill of Entry Date', type: 'date' },
@@ -39,7 +39,7 @@ const DataRetrieval = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [clients, setClients] = useState([]);
-  const [selectedClient, setSelectedClient] = useState(null);
+  const [formatImporter, setformatImporter] = useState(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -51,7 +51,7 @@ const DataRetrieval = () => {
       if (!error) {
         setData(data);
         setFilteredData(data);
-        const uniqueClients = [...new Set(data.map(row => row.client_name))];
+        const uniqueClients = [...new Set(data.map(row => row.format_importer))];
         setClients(uniqueClients);
       }
     };
@@ -61,8 +61,8 @@ const DataRetrieval = () => {
   const handleSearch = () => {
     let filtered = data;
     
-    if (selectedClient) {
-      filtered = filtered.filter(row => row.client_name === selectedClient);
+    if (formatImporter) {
+      filtered = filtered.filter(row => row.client_name === formatImporter);
     }
 
     if (startDate && endDate) {
@@ -86,9 +86,9 @@ const DataRetrieval = () => {
       >
         <Autocomplete
           options={clients}
-          value={selectedClient}
-          onChange={(event, newValue) => setSelectedClient(newValue)}
-          renderInput={(params) => <TextField {...params} label="Client Name" variant="outlined" />}
+          value={formatImporter}
+          onChange={(event, newValue) => setformatImporter(newValue)}
+          renderInput={(params) => <TextField {...params} label="Format Importer Name" variant="outlined" />}
           sx={{ width: isMobile ? '100%' : 300 }}
         />
 
