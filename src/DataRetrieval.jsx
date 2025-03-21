@@ -62,7 +62,7 @@ const DataRetrieval = () => {
     let filtered = data;
     
     if (formatImporter) {
-      filtered = filtered.filter(row => row.client_name === formatImporter);
+      filtered = filtered.filter(row => row.format_importer === formatImporter);
     }
 
     if (startDate && endDate) {
@@ -71,7 +71,7 @@ const DataRetrieval = () => {
         new Date(row.bill_of_entry_date) <= new Date(endDate)
       );
     }
-
+    console.log("filtered",filtered)
     setFilteredData(filtered);
   };
 
