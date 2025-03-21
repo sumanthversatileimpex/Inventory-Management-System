@@ -102,7 +102,7 @@ const ReceiptsTable = () => {
       return;
     }
 
-    const { error } = await supabase.from('reciept1_duplicate').insert(data.map(({ id, ...row }) => row));
+    const { error } = await supabase.from('reciept1').insert(data.map(({ id, ...row }) => row));
 
     if (error) {
       setSnackbarMessage('Submission failed!');
