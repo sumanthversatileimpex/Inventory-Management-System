@@ -25,32 +25,41 @@ const Removals= () => {
   const [billEntries, setBillEntries] = useState([]); // Store available Bill of Entry Numbers
   const [invoiceNumbers, setInvoiceNumbers] = useState({}); // Store Invoice Numbers
   const [invoiceSerials, setInvoiceSerials] = useState({}); // Store Invoice Serials
+  const [formatImporter, setFormatImporter] = useState({}); 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
     const fetchBillEntries = async () => {
-      const { data, error } = await supabase.from('reciept1').select('bill_of_entry_number, invoice_no, invoice_serial');
+      const { data, error } = await supabase.from('reciept1').select('format_importer,bill_of_entry_number, invoice_no, invoice_serial');
       if (error) {
         console.error("Error fetching bill entries:", error);
       } else {
         const formattedEntries = data.map(entry => entry.bill_of_entry_number);
         const invoiceData = {};
         const serialData = {};
+        const formateImporterData = {};
         data.forEach(entry => {
+          formateImporterData[entry.bill_of_entry_number] = entry.format_importer;
           invoiceData[entry.bill_of_entry_number] = entry.invoice_no;
           serialData[entry.bill_of_entry_number] = entry.invoice_serial ? entry.invoice_serial.split(',') : [];
         });
         setBillEntries(formattedEntries);
+        setFormatImporter(formateImporterData);
         setInvoiceNumbers(invoiceData);
         setInvoiceSerials(serialData);
       }
     };
+    console.log("FormatImporter",formatImporter)
 
       useEffect(() => {
         fetchBillEntries();
       }, []);
 
+        useEffect(() => {
+          console.log("Fetched Bill Entries:", billEntries);
+          console.log("Format Importer Data:", formatImporter);
+        }, [billEntries, formatImporter]);
 
   const handleInputChange = (id, columnId, value) => {
     setData(prevData =>
@@ -59,10 +68,13 @@ const Removals= () => {
   };
 
   const handleBillOfEntryChange = (id, value) => {
+    console.log("Selected Bill of Entry:", value);
+    console.log("Mapped Format Importer:", formatImporter[value]);
+    console.log("Mapped Format Importer:", invoiceNumbers[value]);
     setData(prevData =>
       prevData.map(row =>
         row.id === id
-          ? { ...row, bill_of_entry_number: value, invoice_no: invoiceNumbers[value] || '', invoice_serial: [] }
+          ? { ...row, bill_of_entry_number: value, invoice_no: invoiceNumbers[value] || '', invoice_serial: [] ,format_importer : formatImporter[value] || ''}
           : row
       )
     );
@@ -86,10 +98,10 @@ const Removals= () => {
 
   const submitData = async () => {
     const isValid = data.every(row =>
-      row.bill_of_entry_number && row.invoice_no && row.invoice_serial &&
+      row.bill_of_entry_number && row.invoice_no && row.invoice_serial && row.format_importer &&
       columns.every(col => row[col.id])
     );
-    
+    console.log("isValid data",data)
     if (!isValid) {
       setSnackbarMessage('Please fill all fields before submitting!');
       setSnackbarSeverity('error');
@@ -97,6 +109,10 @@ const Removals= () => {
       return;
     }
 
+    // const { error } = await supabase.from("removal").insert(
+    //   data.map(({ id, ...row }) => row)
+    // );
+     
     const { error } = await supabase.from("removal").insert(
       data.map(({ id, ...row }) => row)
     );
