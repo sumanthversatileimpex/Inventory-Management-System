@@ -63,42 +63,6 @@ function DataRetrieval_clientsInfo() {
      <Paper sx={{ padding: 2, overflowX: 'auto' }}>
          <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 }}>Clients Data</Typography>
    
-         {/* <Stack 
-           direction={isMobile ? 'column' : 'row'} 
-           spacing={2} 
-           sx={{ marginBottom: 2 }}
-         >
-           <Autocomplete
-             options={clients}
-             value={formatImporter}
-             onChange={(event, newValue) => setformatImporter(newValue)}
-             renderInput={(params) => <TextField {...params} label="Format Importer Name" variant="outlined" />}
-             sx={{ width: isMobile ? '100%' : 300 }}
-           />
-   
-           <TextField
-             label="Start Date"
-             type="date"
-             InputLabelProps={{ shrink: true }}
-             value={startDate}
-             onChange={(e) => setStartDate(e.target.value)}
-             sx={{ width: isMobile ? '100%' : 200 }}
-           />
-   
-           <TextField
-             label="End Date"
-             type="date"
-             InputLabelProps={{ shrink: true }}
-             value={endDate}
-             onChange={(e) => setEndDate(e.target.value)}
-             sx={{ width: isMobile ? '100%' : 200 }}
-           />
-   
-           <Button variant="contained" color="primary" onClick={handleSearch} sx={{ width: isMobile ? '100%' : 'auto' }}>
-             Search
-           </Button>
-         </Stack> */}
-   
          <Box sx={{ overflowX: 'auto' }}>
            <TableContainer sx={{ borderRadius: '7px', minWidth: '900px' }}>
              <Table>

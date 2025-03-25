@@ -32,6 +32,7 @@ import DataRetrieval from "./DataRetrieval";
 import DataRetrieval_handling from "./DataRetrieval_handling";
 import DataRetrieval_removals from "./DataRetrieval_removals";
 import DataRetrieval_clientsInfo from "./DataRetrieval_clientsInfo";
+import MTR_Information from "./MTR_Information";
 
 const HomePage = () => (
   <Container maxWidth="md">
@@ -245,7 +246,7 @@ const App = () => {
         <Route path="/retrieve_handling" element={<DataRetrieval_handling />} />
         <Route path="/retrieve_removals" element={<DataRetrieval_removals />} />
         <Route path="/retrieve_clients" element={<DataRetrieval_clientsInfo />} />
-        <Route path="/mtr_info" element={<div>MTR Information Page</div>} />
+        <Route path="/mtr_info" element={<MTR_Information></MTR_Information>} />
       </Routes>
     </Router>
     </Box>
