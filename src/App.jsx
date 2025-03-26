@@ -41,7 +41,7 @@ const HomePage = () => (
         Welcome to Inventory Management System
       </Typography>
       <Typography variant="body1" sx={{ marginTop: 2 , color:'#43766C'}}>
-        Manage your receipts, handling & storage, removals, and client information efficiently.
+        Manage your Receipts, Handling & Storage, Removals, and Client information efficiently.
       </Typography>
       <Button variant="contained" color="primary" sx={{ marginTop: 3 }} component={Link} to="/receipts">
         Get Started

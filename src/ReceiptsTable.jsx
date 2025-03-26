@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
 import {
   Paper, Table, TableBody, TableCell, TableContainer, TableHead,
@@ -8,7 +8,7 @@ import {
 
 const columns = [
   // { id: 'client_name', label: 'Client Name', type: 'text', placeholder: 'Client Name' },
-  { id: 'format_importer', label: 'Format Importer', type: 'text', placeholder: 'Format Importer' },
+  { id: 'format_importer', label: 'Format Importer', type: 'select', placeholder: 'Select Client' },
   { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number', placeholder: 'Bill Of Entry No.', rules: { min: 1 } },
   { id: 'bill_of_entry_date', label: 'Bill of Entry Date', type: 'date', placeholder: 'Bill Of Entry Date' },
   { id: 'invoice_no', label: 'Invoice Number', type: 'text', placeholder: 'Invoice No.' },
@@ -20,7 +20,7 @@ const columns = [
   { id: 'packages_description', label: 'Packages', type: 'text', placeholder: 'Packages Description', width: 250 },
   { id: 'marks_numbers', label: 'Marks & No.', type: 'text', placeholder: 'Marks & No.' },
   { id: 'weight', label: 'Weight', type: 'number', placeholder: 'Weight', rules: { min: 0 }, width: 100 },
-  { id: 'unit', label: 'Unit', type: 'text', placeholder: 'kg/ltr',  options: ['kg', 'liter'], width: 100 },
+  { id: 'unit', label: 'Unit', type: 'text', placeholder: 'kg/ltr', options: ['kg', 'liter'], width: 100 },
   { id: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Quantity', rules: { min: 1 }, width: 100 },
   { id: 'value_inr', label: 'Value', type: 'number', placeholder: 'Value (INR)', rules: { min: 1, format: 'currency' }, adornment: true },
   { id: 'duty_assessed', label: 'Duty Assessed ', type: 'number', placeholder: 'Enter Duty (INR)', rules: { min: 1, format: 'currency' }, adornment: true },
@@ -37,9 +37,23 @@ const columns = [
 const ReceiptsTable = () => {
   const [data, setData] = useState([{ id: Date.now() }]);
   const [staticValues, setStaticValues] = useState({});
+  const [clientNames, setClientNames] = useState([]);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  useEffect(() => {
+    const fetchClientNames = async () => {
+      const { data, error } = await supabase.from('client_details').select('client_name');
+      if (error) {
+        console.error('Error fetching client names:', error);
+      } else {
+        setClientNames(data.map(item => item.client_name));
+      }
+    };
+
+    fetchClientNames();
+  }, []);
 
   const staticColumns = [
     'format_importer',
@@ -51,24 +65,29 @@ const ReceiptsTable = () => {
     'order_date',
     'warehouse_code_address'
   ];
-  
+
   const handleInputChange = (id, columnId, value) => {
     const updatedData = data.map(row =>
       row.id === id ? { ...row, [columnId]: value } : row
     );
-  
+
     setData(updatedData);
-  
+
+    if (columnId === 'format_importer') {
+      setStaticValues(prev => ({ ...prev, format_importer: value }));
+      setData(updatedData.map(row => ({ ...row, format_importer: value })));
+    }
+
     if (staticColumns.includes(columnId)) {
       setStaticValues(prev => ({ ...prev, [columnId]: value }));
-      setData(updatedData.map(row => ({ ...row, [columnId]: value }))); 
+      setData(updatedData.map(row => ({ ...row, [columnId]: value })));
     }
   };
-  
+
   const addRow = () => {
     setData([...data, { id: Date.now(), ...staticValues }]);
   };
-  
+
   const deleteRow = (id) => {
     if (data.length > 1) {
       setData(data.filter(row => row.id !== id));
@@ -79,7 +98,7 @@ const ReceiptsTable = () => {
     let isValid = true;
     let updatedData = data.map(row => {
       let newRow = { ...row };
-    
+
       columns.forEach(column => {
         if (!row[column.id] || row[column.id] === '') {
           newRow[`${column.id}_error`] = true;
@@ -91,7 +110,7 @@ const ReceiptsTable = () => {
 
       return newRow;
     });
-    console.log("updatedData",updatedData)
+    console.log("updatedData", updatedData)
 
     setData(updatedData);
 
@@ -139,6 +158,20 @@ const ReceiptsTable = () => {
               <TableRow key={row.id}>
                 {columns.map(column => (
                   <TableCell key={column.id}>
+                    {column.id === 'format_importer' ? (
+                      <Select
+                        fullWidth
+                        value={row[column.id] || ''}
+                        onChange={(e) => handleInputChange(row.id, column.id, e.target.value)}
+                        displayEmpty
+                        size="small"
+                      >
+                        <MenuItem value="" disabled>Select Client</MenuItem>
+                        {clientNames.map((client, index) => (
+                          <MenuItem key={index} value={client}>{client}</MenuItem>
+                        ))}
+                      </Select>
+                    ) : (
                       <TextField
                         variant="outlined"
                         size="small"
@@ -146,12 +179,9 @@ const ReceiptsTable = () => {
                         placeholder={column.placeholder}
                         fullWidth
                         sx={{
-                          minWidth: column.width || 180,
+                          minWidth: 180,
                           '& .MuiOutlinedInput-root': {
                             '& fieldset': {
-                              borderColor: row[`${column.id}_error`] ? 'red' : undefined,
-                            },
-                            '&:hover fieldset': {
                               borderColor: row[`${column.id}_error`] ? 'red' : undefined,
                             },
                           },
@@ -159,8 +189,9 @@ const ReceiptsTable = () => {
                         value={row[column.id] || ''}
                         onChange={(e) => handleInputChange(row.id, column.id, e.target.value)}
                       />
-                   
+                    )}
                   </TableCell>
+
                 ))}
                 <TableCell>
                   <Button onClick={() => deleteRow(row.id)} color="error" variant="contained">Delete</Button>
@@ -170,7 +201,7 @@ const ReceiptsTable = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
         <Button onClick={addRow} color="primary" variant="contained" sx={{ mx: 1 }}>Add Row</Button>
         <Button onClick={submitData} color="success" variant="contained" sx={{ mx: 1 }}>Submit</Button>

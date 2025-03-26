@@ -67,8 +67,8 @@ const DataRetrieval = () => {
 
     if (startDate && endDate) {
       filtered = filtered.filter(row => 
-        new Date(row.bill_of_entry_date) >= new Date(startDate) &&
-        new Date(row.bill_of_entry_date) <= new Date(endDate)
+        new Date(row.order_date) >= new Date(startDate) &&
+        new Date(row.order_date) <= new Date(endDate)
       );
     }
     console.log("filtered",filtered)

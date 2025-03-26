@@ -26,12 +26,13 @@ const Removals= () => {
   const [invoiceNumbers, setInvoiceNumbers] = useState({}); // Store Invoice Numbers
   const [invoiceSerials, setInvoiceSerials] = useState({}); // Store Invoice Serials
   const [formatImporter, setFormatImporter] = useState({}); 
+  const [orderDateData, setorderDateData] = useState(null); 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
     const fetchBillEntries = async () => {
-      const { data, error } = await supabase.from('reciept1').select('format_importer,bill_of_entry_number, invoice_no, invoice_serial');
+      const { data, error } = await supabase.from('reciept1').select('format_importer,bill_of_entry_number, invoice_no, invoice_serial,order_date');
       if (error) {
         console.error("Error fetching bill entries:", error);
       } else {
@@ -39,19 +40,22 @@ const Removals= () => {
         const invoiceData = {};
         const serialData = {};
         const formateImporterData = {};
+        const orderData = {};
         data.forEach(entry => {
           formateImporterData[entry.bill_of_entry_number] = entry.format_importer;
           invoiceData[entry.bill_of_entry_number] = entry.invoice_no;
           serialData[entry.bill_of_entry_number] = entry.invoice_serial ? entry.invoice_serial.split(',') : [];
+          orderData[entry.bill_of_entry_number] = entry.order_date;
         });
         setBillEntries(formattedEntries);
         setFormatImporter(formateImporterData);
         setInvoiceNumbers(invoiceData);
         setInvoiceSerials(serialData);
+        setorderDateData(orderData);
       }
     };
     console.log("FormatImporter",formatImporter)
-
+    console.log("Order Date Data:", orderDateData);
       useEffect(() => {
         fetchBillEntries();
       }, []);
@@ -71,10 +75,11 @@ const Removals= () => {
     console.log("Selected Bill of Entry:", value);
     console.log("Mapped Format Importer:", formatImporter[value]);
     console.log("Mapped Format Importer:", invoiceNumbers[value]);
+    console.log("Mapped Format Importer:", orderDateData[value]);
     setData(prevData =>
       prevData.map(row =>
         row.id === id
-          ? { ...row, bill_of_entry_number: value, invoice_no: invoiceNumbers[value] || '', invoice_serial: [] ,format_importer : formatImporter[value] || ''}
+          ? { ...row, bill_of_entry_number: value, invoice_no: invoiceNumbers[value] || '', invoice_serial: [] ,format_importer : formatImporter[value] || '' , order_date: orderDateData[value] || null ,}
           : row
       )
     );

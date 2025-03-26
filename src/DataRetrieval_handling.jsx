@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
 import {
   Paper, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Button, Typography, Box, FormControl, InputLabel, Select, MenuItem, Stack
+  TableRow, Button, Typography, Box, FormControl, InputLabel, Select, MenuItem, Stack, TextField
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 const columns = [
   { id: 'format_importer', label: 'Format Importer', type: 'text' },
+  { id: 'order_date', label: 'Order Date', type: 'date', placeholder: 'Order Date' },
   // { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number' },
   // { id: 'invoice_no', label: 'Invoice No', type: 'text' },
   // { id: 'invoice_serial', label: 'Invoice Serial', type: 'text' },
@@ -24,8 +25,8 @@ function DataRetrieval_handling() {
     const [filteredData, setFilteredData] = useState([]);
     const [clients, setClients] = useState([]);
     const [formatImporter, setFormatImporter] = useState(null);
-    // const [startDate, setStartDate] = useState('');
-    // const [endDate, setEndDate] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
   
     // const theme = useTheme();
     useEffect(() => {
@@ -40,7 +41,7 @@ function DataRetrieval_handling() {
       };
       fetchData();
     }, []);
-    // console.log("formatImporter",formatImporter)
+    // console.log("formatImporter",formatImporter);
 
     const handleSearch = () => {
       let filtered = data;
@@ -48,36 +49,57 @@ function DataRetrieval_handling() {
       if (formatImporter) {
         filtered = filtered.filter(row => row.format_importer === formatImporter);
       }
+      if (startDate && endDate) {
+        filtered = filtered.filter(row => 
+          new Date(row.order_date) >= new Date(startDate) && new Date(row.order_date) <= new Date(endDate)
+        );
+      }
+
       setFilteredData(filtered);
     };
   
-  return (
+   return (
     <Paper sx={{ padding: 2, overflowX: 'auto' }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 }}>Handling & storage Data</Typography>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 }}>Handling & Storage Data</Typography>
   
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginBottom: 2 }}>
-                 <FormControl sx={{ minWidth: 300 }}>
-                  <InputLabel id="demo-simple-select-label">Format Importer Name</InputLabel>
-                   <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
+            <FormControl sx={{ minWidth: 300 }}>
+                <InputLabel id="format-importer-label">Format Importer Name</InputLabel>
+                <Select
+                    labelId="format-importer-label"
+                    id="format-importer"
                     value={formatImporter || ""}                    
-                     label="Format Importer Name"
-                     onChange={(e) => setFormatImporter(e.target.value)}
-                     MenuProps={{
-                       PaperProps: {
-                         sx: { width: 300 }, 
-                       },
-                     }}
-                     sx={{ width: 300 }}
-                   >
-                     {clients.map((client, index) => (
-                       <MenuItem key={index} value={client}>{client}</MenuItem>
-                     ))}
-                   </Select>
-                 </FormControl>
-                 <Button variant="contained" onClick={handleSearch}>Search</Button>
-               </Stack>
+                    label="Format Importer Name"
+                    onChange={(e) => setFormatImporter(e.target.value)}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: { width: 300 }, 
+                      },
+                    }}
+                    sx={{ width: 300 }}
+                >
+                    {clients.map((client, index) => (
+                        <MenuItem key={index} value={client}>{client}</MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+            <TextField
+                label="Start Date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+            />
+            <TextField
+                label="End Date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+            />
+            <Button variant="contained" onClick={handleSearch}>Search</Button>
+        </Stack>
+        
         <Box sx={{ overflowX: 'auto' }}>
           <TableContainer sx={{ borderRadius: '7px', minWidth: '900px' }}>
             <Table>
@@ -105,8 +127,8 @@ function DataRetrieval_handling() {
             </Table>
           </TableContainer>
         </Box>
-      </Paper>
-  )
-}
-
-export default DataRetrieval_handling
+    </Paper>
+     )
+    }
+    
+    export default DataRetrieval_handling;

@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
 import {
   Paper, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Button, Typography, Box, FormControl, InputLabel, Select, MenuItem, Stack
+  TableRow, Button, Typography, Box, FormControl, InputLabel, Select, MenuItem, Stack, TextField
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 const columns = [ 
   { id: 'format_importer', label: 'Format Importer', type: 'text' },
+  { id: 'order_date', label: 'Order Date', type: 'date', placeholder: 'Order Date' },
   // { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number' },
   // { id: 'invoice_no', label: 'Invoice No', type: 'text' },
   // { id: 'invoice_serial', label: 'Invoice Serial', type: 'text' },
@@ -28,6 +29,8 @@ const columns = [
     const [filteredData, setFilteredData] = useState([]);
     const [clients, setClients] = useState([]);
     const [formatImporter, setFormatImporter] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
   // console.log("data",data)
 
     useEffect(() => {
@@ -47,6 +50,11 @@ const columns = [
       let filtered = data;
       if (formatImporter) {
         filtered = filtered.filter(row => row.format_importer === formatImporter);
+      }
+      if (startDate && endDate) {
+        filtered = filtered.filter(row => 
+          new Date(row.order_date) >= new Date(startDate) && new Date(row.order_date) <= new Date(endDate)
+        );
       }
       setFilteredData(filtered);
     };
@@ -77,6 +85,20 @@ const columns = [
               ))}
             </Select>
           </FormControl>
+           <TextField
+                          label="Start Date"
+                          type="date"
+                          InputLabelProps={{ shrink: true }}
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                      />
+                      <TextField
+                          label="End Date"
+                          type="date"
+                          InputLabelProps={{ shrink: true }}
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                      />
           <Button variant="contained" onClick={handleSearch}>Search</Button>
         </Stack>
   
