@@ -131,7 +131,7 @@ const fetchClientDetails = async () => {
       body: [
         ["Form To Be Maintained By The Warehouse Licensee Of The Receipt, Handling, Storing And Removal Of The Warehoused Goods."],
         ["(In Term of Circular No. 25/2016-customs Dated 08.06.2016)"],
-        [clientInfo],
+        [clientInfo || "Client information not available"],
         ["Receipts"]
       ],
       styles: { fontSize: 7, cellPadding: 3, valign: "middle", halign: "center", textColor: 0 },
