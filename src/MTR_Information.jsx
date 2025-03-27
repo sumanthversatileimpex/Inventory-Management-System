@@ -12,8 +12,8 @@ const MTR_Information = () => {
   const [handlingData, setHandlingData] = useState([]);
   const [removalData, setRemovalData] = useState([]);
   const [importers, setImporters] = useState([]);
-  const [startDate, setStartDate] = useState(""); // Start date state
-  const [endDate, setEndDate] = useState(""); // End date state
+  const [startDate, setStartDate] = useState(""); 
+  const [endDate, setEndDate] = useState("");
   const isMobile = useMediaQuery("(max-width:600px)");
 
   useEffect(() => {
@@ -48,7 +48,7 @@ const MTR_Information = () => {
       query = query.lte("order_date", endDate);
     }
   
-    const { data, error } = await query; // Await only after all filters are applied
+    const { data, error } = await query; 
   
     if (error) {
       console.error("Error fetching data:", error);
@@ -263,6 +263,71 @@ const fetchClientDetails = async () => {
       alternateRowStyles: { fillColor: [255, 255, 255] },
     });
 
+    doc.addPage();
+
+    autoTable(doc, {
+      startY: 10,
+      head: [["FORM-B"]],
+      body: [
+        ["(see Para3 Of Circular No.25/2016-customs Dated 08.06.2016)"],
+        ["Details of goods stored in the warehouse where the period for which they may remain warehoused under section 61 is expiring in the following Month."],
+        [clientInfo || "Client information not available"], 
+      ],
+      styles: { fontSize: 7, cellPadding: 3, valign: "middle", halign: "center", textColor: 0 },
+      headStyles: { fillColor: [255, 255, 255], textColor: 0, fontSize: 11, fontStyle: "bold", lineWidth: 0.2, lineColor: [0, 0, 0] },
+      bodyStyles: { lineWidth: 0.2, lineColor: [0, 0, 0], fillColor: [255, 255, 255], textColor: 0 },
+      alternateRowStyles: { fillColor: [255, 255, 255] },
+      
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          if (data.row.index === 0 || data.row.index === 1) {
+            data.cell.styles.fontSize = 11; 
+          } else if (data.row.index === 2) {
+            data.cell.styles.fontSize = 7; 
+          } else if (data.row.index === 3) {
+            data.cell.styles.fontSize = 11;
+            data.cell.styles.fontStyle = "bold"; 
+          }
+        }
+      }
+    });
+  
+    // Second Table (Data) page 1
+ 
+    
+    // Generate the table
+    autoTable(doc, {
+      startY: doc.lastAutoTable ? doc.lastAutoTable.finalY  : 10, // Positioning
+      head: [
+        [
+          {content: "Bill of Entry No. and Date" , rowSpan:2 , styles:{halign:"center"}}, 
+          {content: "Bond No. And Date",  rowSpan:2 , styles:{halign:"center"}}, 
+          {content: "Date of order under section 60(1)",  rowSpan:2 , styles:{halign:"center"}},     
+          { content: "Balance goods in the warehouse", colSpan: 4, styles: { halign: "center" } },
+          { content: "Date Of Expiry Of Initial Bonding Period",rowSpan:2,  styles: { halign: "center" } },
+          { content: "Details Of extensions (Period Extended Upto)", colSpan: 4,rowSpan:2 , styles: { halign: "center" } },
+          { content: "Details Of Bank Guarantee", rowSpan:2 , styles: { halign: "center" } },
+          { content: "Date Of Expiry Of Bonding Period", rowSpan:2 , styles: { halign: "center" } },
+          { content: "Remarks", rowSpan:2 , styles: { halign: "center" } },
+        ],
+        [
+          { content: "Invoice no.",  styles: { halign: "center" } },
+          { content: "Sl No.", styles: { halign: "center" } },
+          { content: "Description of Goods", styles: { halign: "center" } },
+          { content: "Quantity", styles: { halign: "center" } },
+        ]
+      ],
+      body: [
+        ["N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A" ,  "N/A", "N/A" ]
+      ],
+      styles: { fontSize: 6, cellPadding: 2, valign: "middle", halign: "center", textColor: 0 },
+      headStyles: { fillColor: [255, 255, 255], textColor: 0, fontSize: 6, fontStyle: "bold", lineWidth: 0.2, lineColor: [0, 0, 0] },
+      bodyStyles: { lineWidth: 0.2, lineColor: [0, 0, 0], fillColor: [255, 255, 255], textColor: 0 },
+      alternateRowStyles: { fillColor: [255, 255, 255] },
+    });
+    
+    
+    // Save the PDF
     doc.save("FORM_A.pdf");
   };
   
