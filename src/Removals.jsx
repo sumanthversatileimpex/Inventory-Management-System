@@ -32,44 +32,89 @@ const Removals = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
+  const fetchRemovalData = async () => {
+    const { data, error } = await supabase
+        .from("removal")
+        .select("bill_of_entry_number, invoice_no, invoice_serial, balance_quantity, format_importer, order_date, date_and_time_of_removal, purpose_of_removal, bill_of_entry_no, bill_of_entry_date, quantity_cleared, value, duty, interest, remarks"); // Removed original_balance_quantity
+
+    if (error) {
+        console.error("❌ Error fetching removal data:", error);
+        return;
+    }
+
+    console.log("✅ Fetched Removal Data:", data);
+};
+
+fetchRemovalData();
+
+
+
   const fetchBillEntries = async () => {
-    const { data, error } = await supabase.from('reciept1').select('format_importer,bill_of_entry_number, invoice_no, invoice_serial,order_date,quantity_received');
+    const { data, error } = await supabase
+      .from('reciept1')
+      .select('format_importer, bill_of_entry_number, invoice_no, invoice_serial, order_date, quantity_received');
+
     if (error) {
       console.error("Error fetching bill entries:", error);
-    } else {
-      const formattedEntries = data.map(entry => entry.bill_of_entry_number);
-      const invoiceData = {};
-      const serialData = {};
-      const formateImporterData = {};
-      const orderData = {};
-      const quantityData = {};
-      data.forEach(entry => {
-        formateImporterData[entry.bill_of_entry_number] = entry.format_importer;
-        invoiceData[entry.bill_of_entry_number] = entry.invoice_no;
-        serialData[entry.bill_of_entry_number] = entry.invoice_serial ? entry.invoice_serial.split(',') : [];
-        orderData[entry.bill_of_entry_number] = entry.order_date;
-        quantityData[`${entry.bill_of_entry_number}_${entry.invoice_no}_${entry.invoice_serial}`] = entry.quantity_received;
-      });
-      setBillEntries(formattedEntries);
-      setFormatImporter(formateImporterData);
-      setInvoiceNumbers(invoiceData);
-      setInvoiceSerials(serialData);
-      setorderDateData(orderData);
-      setQuantityReceived(quantityData);
+      return;
     }
+
+    const uniqueEntries = new Set();
+    const invoiceData = {};
+    const serialData = {};
+    const formatImporterData = {};
+    const orderData = {};
+    const quantityData = {};
+
+    data.forEach(entry => {
+      if (entry.bill_of_entry_number) {
+        uniqueEntries.add(entry.bill_of_entry_number);
+        formatImporterData[entry.bill_of_entry_number] = entry.format_importer;
+        invoiceData[entry.bill_of_entry_number] = entry.invoice_no;
+
+        // Store invoice serials per bill_of_entry_number
+        if (!serialData[entry.bill_of_entry_number]) {
+          serialData[entry.bill_of_entry_number] = [];
+        }
+        if (entry.invoice_serial) {
+          serialData[entry.bill_of_entry_number].push(...entry.invoice_serial.split(','));
+        }
+
+        // Store quantity received based on all three: bill_of_entry_number, invoice_no, invoice_serial
+        const key = `${entry.bill_of_entry_number}_${entry.invoice_no}_${entry.invoice_serial}`;
+        quantityData[key] = entry.quantity_received || 0;
+
+        orderData[entry.bill_of_entry_number] = entry.order_date;
+      }
+    });
+
+    setBillEntries(Array.from(uniqueEntries));
+    setFormatImporter(formatImporterData);
+    setInvoiceNumbers(invoiceData);
+    setInvoiceSerials(serialData);
+    setorderDateData(orderData);
+    setQuantityReceived(quantityData);
   };
-  // console.log("FormatImporter",formatImporter)
-  // console.log("Order Date Data:", orderDateData);
 
   useEffect(() => {
     fetchBillEntries();
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Fetched Bill Entries:", billEntries);
-  //   console.log("Format Importer Data:", formatImporter);
-  // }, [billEntries, formatImporter]);
+
+  // console.log("FormatImporter",formatImporter)
+  // console.log("Order Date Data:", orderDateData);
   // console.log("quantityReceived", quantityReceived);
+  // console.log("invoiceSerials", invoiceSerials)
+  useEffect(() => {
+    fetchBillEntries();
+  }, []);
+
+  useEffect(() => {
+    console.log("Fetched Bill Entries:", billEntries);
+    console.log("Format Importer Data:", formatImporter);
+    console.log("orderDateData", orderDateData);
+  }, [billEntries, formatImporter]);
+  console.log("quantityReceived", quantityReceived);
 
   const handleInputChange = (id, columnId, value) => {
     setData(prevData =>
@@ -77,97 +122,114 @@ const Removals = () => {
     );
   };
 
-  const handleBillOfEntryChange = (id, value) => {
-    console.log("Selected Bill of Entry:", value);
-    console.log("Mapped Format Importer:", formatImporter[value]);
-    console.log("Mapped Invoice Number:", invoiceNumbers[value]);
-    console.log("Mapped Order Date:", orderDateData[value]);
+  const handleBillOfEntryChange = (rowId, billOfEntryNumber) => {
+    // Find invoice_no from stored data
+    const invoiceNo = invoiceNumbers[billOfEntryNumber] || "";
+    const invoiceSerialsList = invoiceSerials[billOfEntryNumber] || [];
+    console.log("Mapped Format Importer:", formatImporter[billOfEntryNumber]);
+    console.log("Mapped Order Date:", orderDateData[billOfEntryNumber]);
 
-    // Ensure invoice_serial is properly handled (since it's an array)
-    const invoiceSerialKey = Array.isArray(invoiceSerials[value]) ? invoiceSerials[value].join(",") : invoiceSerials[value];
-
-    // Compute balance_quantity based on stored data
-    const balanceQuantity = quantityReceived[`${value}_${invoiceNumbers[value]}_${invoiceSerialKey}`] || 0;
-
-    console.log("Computed Balance Quantity:", balanceQuantity);
-
-    setData(prevData =>
-      prevData.map(row =>
-        row.id === id
+    setData((prevData) =>
+      prevData.map((row) =>
+        row.id === rowId
           ? {
-            ...row,
-            bill_of_entry_number: value,
-            invoice_no: invoiceNumbers[value] || '',
-            invoice_serial: [],
-            format_importer: formatImporter[value] || '',
-            order_date: orderDateData[value] || null,
-            balance_quantity: balanceQuantity,
+            ...row, bill_of_entry_number: billOfEntryNumber, invoice_no: invoiceNo, invoice_serial: "", balance_quantity: "", format_importer: formatImporter[billOfEntryNumber] || '',
+            order_date: orderDateData[billOfEntryNumber] || null,
           }
           : row
       )
     );
+    console.log("invoiceSerialsList----", invoiceSerialsList)
   };
 
-// Function to update quantity_cleared and dynamically update balance_quantity
-const handleQuantityClearedChange = (id, value) => {
-  setData(prevData =>
-    prevData.map(row => {
-      if (row.id === id) {
-        if (value === "") {
-          // If input is cleared, fetch latest balance from DB
-          resetBalanceQuantity(row.id, row.bill_of_entry_number, row.invoice_no, row.invoice_serial);
-          return { ...row, quantity_cleared: "", balance_quantity: row.balance_quantity };
-        }
+  const handleInvoiceSerialChange = async (rowId, selectedSerial) => {
+    if (Array.isArray(selectedSerial)) {
+        selectedSerial = selectedSerial[0]; // Ensure it's a string
+    }
 
-        // Subtract from the last known balance
-        const newBalance = (row.latest_balance || row.balance_quantity || 0) - Number(value);
-        return { ...row, quantity_cleared: value, balance_quantity: Math.max(newBalance, 0) };
-      }
-      return row;
-    })
+    const row = data.find(r => r.id === rowId);
+    if (!row || !row.bill_of_entry_number || !row.invoice_no || !selectedSerial) {
+        console.log("❌ Missing required data:", { row, selectedSerial });
+        return;
+    }
+
+    const key = `${row.bill_of_entry_number}_${row.invoice_no}_${selectedSerial}`;
+
+    // Fetch the latest balance_quantity from removal table
+    const { data: removalData, error } = await supabase
+    .from("removal")
+    .select("balance_quantity")
+    .eq("bill_of_entry_number", row.bill_of_entry_number)
+    .eq("invoice_no", row.invoice_no)
+    .eq("invoice_serial", selectedSerial)
+    .order("created_at", { ascending: false }) // Get the latest based on created_at
+    .limit(1);
+
+
+    let latestBalance = removalData?.length > 0 ? removalData[0].balance_quantity : null;
+
+    // If no entry exists in removal, use quantity_received from reciept1
+    if (latestBalance === null) {
+        latestBalance = quantityReceived[key] || 0;
+        console.log("heyy------------------")
+    }
+
+    console.log("🔎 Searching with key:", key);
+    console.log("✅ Latest Balance Quantity:", latestBalance);
+
+    // Store in state
+    setData(prevData =>
+        prevData.map(r =>
+            r.id === rowId
+                ? { ...r, invoice_serial: selectedSerial, balance_quantity: latestBalance }
+                : r
+        )
+    );
+};
+
+
+const handleQuantityClearedChange = (rowId, value) => {
+  setData(prevData =>
+      prevData.map(row => {
+          if (row.id === rowId) {
+              const clearedQuantity = value ? parseFloat(value) : 0;
+              let currentBalance = row.balance_quantity ?? 0;
+
+              // Restore original balance when value is cleared (set it back to previous balance)
+              let newBalance;
+              if (!value) {
+                  newBalance = row.initial_balance ?? currentBalance; // Reset to original if cleared
+              } else {
+                  newBalance = currentBalance - clearedQuantity;
+                  if (newBalance < 0) newBalance = 0; // Prevent negative values
+              }
+
+              return { 
+                  ...row, 
+                  quantity_cleared: clearedQuantity, 
+                  balance_quantity: newBalance,
+                  initial_balance: row.initial_balance ?? row.balance_quantity // Store original balance once, only for reference
+              };
+          }
+          return row;
+      })
   );
 };
 
-// Function to fetch the latest balance_quantity from DB and reset it
-const resetBalanceQuantity = async (id, billEntry, invoiceNo, invoiceSerial) => {
-  const latestBalance = await fetchLatestBalanceQuantity(billEntry, invoiceNo, invoiceSerial);
+// Function to send data to DB (EXCLUDE initial_balance)
+const submitDataToDB = async () => {
+  const filteredData = data.map(({ initial_balance, ...rest }) => rest); // Remove initial_balance
 
-  if (latestBalance !== null) {
-    setData(prevData =>
-      prevData.map(row =>
-        row.id === id
-          ? { ...row, balance_quantity: latestBalance, quantity_cleared: "" }
-          : row
-      )
-    );
-  }
-};
-
-// Function to fetch latest balance_quantity from Supabase
-const fetchLatestBalanceQuantity = async (billEntry, invoiceNo, invoiceSerial) => {
-  const { data, error } = await supabase
-    .from("removal")
-    .select("balance_quantity")
-    .eq("bill_of_entry_number", billEntry)
-    .eq("invoice_no", invoiceNo)
-    .eq("invoice_serial", invoiceSerial)
-    .order("id", { ascending: false }) // Fetch the latest entry
-    .limit(1);
+  const { error } = await supabase.from("your_table_name").insert(filteredData);
 
   if (error) {
-    console.error("Error fetching latest balance quantity:", error);
-    return null;
+      console.error("Error inserting data:", error);
+  } else {
+      console.log("Data inserted successfully!");
   }
-  console.log("Latest Balance Quantity:", data);
-  return data.length > 0 ? data[0].balance_quantity : null;
 };
 
 
-  const handleInvoiceSerialChange = (id, value) => {
-    setData(prevData =>
-      prevData.map(row => (row.id === id ? { ...row, invoice_serial: value } : row))
-    );
-  };
 
   const addRow = () => {
     setData([...data, { id: Date.now() }]);
@@ -181,7 +243,7 @@ const fetchLatestBalanceQuantity = async (billEntry, invoiceNo, invoiceSerial) =
 
   const submitData = async () => {
     const isValid = data.every(row =>
-      row.bill_of_entry_number && row.invoice_no && row.invoice_serial && row.format_importer &&
+      row.bill_of_entry_number && row.invoice_no && row.invoice_serial && row.format_importer && 
       columns.every(col => row[col.id])
     );
     console.log("isValid data", data)
@@ -195,10 +257,15 @@ const fetchLatestBalanceQuantity = async (billEntry, invoiceNo, invoiceSerial) =
     // const { error } = await supabase.from("removal").insert(
     //   data.map(({ id, ...row }) => row)
     // );
-
+    
+    const filteredData = data.map(({ initial_balance, ...rest }) => rest);
     const { error } = await supabase.from("removal").insert(
-      data.map(({ id, ...row }) => row)
+      filteredData
     );
+
+    // const { error } = await supabase.from("removal").insert(
+    //   data.map(({ id, ...row }) => row)
+    // );
 
     if (error) {
       setSnackbarMessage("Submission failed!");
@@ -234,8 +301,9 @@ const fetchLatestBalanceQuantity = async (billEntry, invoiceNo, invoiceSerial) =
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map(row => (
+            {data.map((row) => (
               <TableRow key={row.id}>
+
                 {/* Bill of Entry Dropdown */}
                 <TableCell>
                   <Select
@@ -244,8 +312,10 @@ const fetchLatestBalanceQuantity = async (billEntry, invoiceNo, invoiceSerial) =
                     fullWidth
                     sx={{ width: 150 }}
                   >
-                    {billEntries.map(entry => (
-                      <MenuItem key={entry} value={entry}>{entry}</MenuItem>
+                    {billEntries.map((entry) => (
+                      <MenuItem key={entry} value={entry}>
+                        {entry}
+                      </MenuItem>
                     ))}
                   </Select>
                 </TableCell>
@@ -254,9 +324,9 @@ const fetchLatestBalanceQuantity = async (billEntry, invoiceNo, invoiceSerial) =
                 <TableCell>
                   <TextField
                     variant="outlined"
-                    fullWidth
                     sx={{ width: 200 }}
                     size="small"
+                    fullWidth
                     value={row.invoice_no || ""}
                     disabled
                   />
@@ -264,32 +334,21 @@ const fetchLatestBalanceQuantity = async (billEntry, invoiceNo, invoiceSerial) =
 
                 {/* Invoice Serial (Multi-Select) */}
                 <TableCell>
-        <Autocomplete
-          options={invoiceSerials[row.bill_of_entry_number] || []}
-          value={row.invoice_serial || null}
-          fullWidth
-          sx={{ minWidth: 150 }}
-          onChange={async (e, newValue) => {
-            handleInvoiceSerialChange(row.id, newValue);
+                  <Autocomplete
+                    options={invoiceSerials[row.bill_of_entry_number] || []}
+                    value={row.invoice_serial || null}
+                    fullWidth
+                    sx={{ minWidth: 150 }}
+                    onChange={(e, newValue) =>
+                      handleInvoiceSerialChange(row.id, newValue)
+                    }
+                    renderInput={(params) => (
+                      <TextField {...params} variant="outlined" size="small" />
+                    )}
+                  />
+                </TableCell>
 
-            // Fetch balance quantity when invoice serial changes
-            const latestBalance = await fetchLatestBalanceQuantity(
-              row.bill_of_entry_number,
-              row.invoice_no,
-              newValue
-            );
-
-            setData(prevData =>
-              prevData.map(r =>
-                r.id === row.id ? { ...r, balance_quantity: latestBalance || 0 } : r
-              )
-            );
-          }}
-          renderInput={(params) => <TextField {...params} variant="outlined" size="small" />}
-        />
-      </TableCell>
-
-                {/* Other Data Fields */}
+                {/* Other Columns with Conditional Rendering */}
                 {columns.map(column => (
                   <TableCell key={column.id}>
                     {column.id === "quantity_cleared" ? (
@@ -324,9 +383,18 @@ const fetchLatestBalanceQuantity = async (billEntry, invoiceNo, invoiceSerial) =
                   </TableCell>
                 ))}
 
+
+                {/* Delete Button */}
                 <TableCell>
-                  <Button onClick={() => deleteRow(row.id)} color="error" variant="contained">Delete</Button>
+                  <Button
+                    onClick={() => deleteRow(row.id)}
+                    color="error"
+                    variant="contained"
+                  >
+                    Delete
+                  </Button>
                 </TableCell>
+
               </TableRow>
             ))}
           </TableBody>

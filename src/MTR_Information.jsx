@@ -4,7 +4,10 @@ import autoTable from "jspdf-autotable";
 import { supabase } from "./lib/supabaseClient";
 import { Button, Box , Paper, Typography, MenuItem, Select, FormControl, InputLabel, Grid, TextField, Tooltip } from "@mui/material";
 import { useMediaQuery } from "@mui/material";
-
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 
 const MTR_Information = () => {
   const [data, setData] = useState([]);
@@ -326,8 +329,6 @@ const MTR_Information = () => {
       alternateRowStyles: { fillColor: [255, 255, 255] },
     });
 
-
-    // Save the PDF
     doc.save("FORM_A.pdf");
   };
 
@@ -336,7 +337,9 @@ const MTR_Information = () => {
     <Box sx={{ p: 2, overflowX: "auto" }}> 
       <Typography variant="h5" sx={{ color: "#2C3E50", fontWeight: 'bold', marginBottom: 2 }}> MTR </Typography>
 
-      <Grid container spacing={3} alignItems="center" sx={{ marginBottom: 2}} >
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Grid container spacing={3} alignItems="center" sx={{ marginBottom: 2 }}>
+        
         <Grid item xs={12} sm={6} md={4}>
           <FormControl sx={{ width: "auto" }}>
             <InputLabel>Format Importer Name</InputLabel>
@@ -348,10 +351,10 @@ const MTR_Information = () => {
               onChange={(e) => setFormatImporter(e.target.value)}
               MenuProps={{
                 PaperProps: {
-                  sx: { width: isMobile ? 250 : 450 },
+                  sx: { width: isMobile ? 300 : 450 },
                 },
               }}
-              sx={{ width: isMobile ? 250 : 450 }}
+              sx={{ width: isMobile ? 300 : 450 }}
             >
               {importers.map((importer, index) => (
                 <MenuItem key={index} value={importer} sx={{ width: "100%" }}>
@@ -363,30 +366,27 @@ const MTR_Information = () => {
         </Grid>
 
         <Grid item xs={12} sm={4}>
-          <TextField
-            fullWidth
-            type="date"
+          <DatePicker
             label="Start Date"
-            InputLabelProps={{ shrink: true }}
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            sx={{ width: isMobile ? 250 : 450 }}
+            value={startDate ? dayjs(startDate) : null} // Convert to dayjs
+            onChange={(newValue) => setStartDate(newValue ? newValue.format("YYYY-MM-DD") : "")} 
+            format="YYYY-MM-DD"
+            sx={{ width: isMobile ? 300 : 450 }}
           />
         </Grid>
 
         <Grid item xs={12} sm={4}>
-          <TextField
-            fullWidth
-            type="date"
+          <DatePicker
             label="End Date"
-            InputLabelProps={{ shrink: true }}
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-
-            sx={{ width: isMobile ? 250 : 450 }}
+            value={endDate ? dayjs(endDate) : null} 
+            onChange={(newValue) => setEndDate(newValue ? newValue.format("YYYY-MM-DD") : "")}
+            format="YYYY-MM-DD"
+            sx={{ width: isMobile ? 300 : 450 }}
           />
         </Grid>
+
       </Grid>
+    </LocalizationProvider>
       <Box
         sx={{
           display: "flex",
