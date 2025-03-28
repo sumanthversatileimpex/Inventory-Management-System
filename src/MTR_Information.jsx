@@ -348,10 +348,10 @@ const MTR_Information = () => {
               onChange={(e) => setFormatImporter(e.target.value)}
               MenuProps={{
                 PaperProps: {
-                  sx: { width: isMobile ? 300 : 450 },
+                  sx: { width: isMobile ? 350 : 450 },
                 },
               }}
-              sx={{ width: isMobile ? 300 : 450 }}
+              sx={{ width: isMobile ? 350 : 450 }}
             >
               {importers.map((importer, index) => (
                 <MenuItem key={index} value={importer} sx={{ width: "100%" }}>
@@ -370,12 +370,7 @@ const MTR_Information = () => {
             InputLabelProps={{ shrink: true }}
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            MenuProps={{
-              PaperProps: {
-                sx: { width: isMobile ? 300 : 450 },
-              },
-            }}
-            sx={{ width: isMobile ? 300 : 450 }}
+            sx={{ width: isMobile ? 350 : 450 }}
           />
         </Grid>
 
@@ -387,12 +382,8 @@ const MTR_Information = () => {
             InputLabelProps={{ shrink: true }}
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            MenuProps={{
-              PaperProps: {
-                sx: { width: isMobile ? 300 : 450 },
-              },
-            }}
-            sx={{ width: isMobile ? 300 : 450 }}
+
+            sx={{ width: isMobile ? 350 : 450 }}
           />
         </Grid>
       </Grid>
