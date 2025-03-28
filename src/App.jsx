@@ -256,7 +256,7 @@ const App = () => {
 
               <ListItem disablePadding>
                 <ListItemButton component={Link} to="/mtr_info">
-                  <ListItemText primary="MTR Information" />
+                  <ListItemText primary="MTR" />
                 </ListItemButton>
               </ListItem>
             </List>
@@ -275,7 +275,7 @@ const App = () => {
           <Route path="/retrieve_handling" element={<DataRetrieval_handling />} />
           <Route path="/retrieve_removals" element={<DataRetrieval_removals />} />
           <Route path="/retrieve_clients" element={<DataRetrieval_clientsInfo />} />
-          <Route path="/mtr_info" element={<MTR_Information></MTR_Information>} />
+          <Route path="/mtr_info" element={<MTR_Information/>} />
         </Routes>
       </Router>
     </Box>

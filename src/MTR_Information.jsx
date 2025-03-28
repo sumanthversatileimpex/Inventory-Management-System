@@ -336,7 +336,7 @@ const MTR_Information = () => {
     <Box sx={{ p: 2, overflowX: "auto" }}> 
       <Typography variant="h5" sx={{ color: "#2C3E50", fontWeight: 'bold', marginBottom: 2 }}> MTR </Typography>
 
-      <Grid container spacing={3} alignItems="center" sx={{ marginBottom: 2 }} >
+      <Grid container spacing={3} alignItems="center" sx={{ marginBottom: 2}} >
         <Grid item xs={12} sm={6} md={4}>
           <FormControl sx={{ width: "auto" }}>
             <InputLabel>Format Importer Name</InputLabel>
@@ -348,10 +348,10 @@ const MTR_Information = () => {
               onChange={(e) => setFormatImporter(e.target.value)}
               MenuProps={{
                 PaperProps: {
-                  sx: { width: isMobile ? 350 : 450 },
+                  sx: { width: isMobile ? 300 : 450 },
                 },
               }}
-              sx={{ width: isMobile ? 350 : 450 }}
+              sx={{ width: isMobile ? 300 : 450 }}
             >
               {importers.map((importer, index) => (
                 <MenuItem key={index} value={importer} sx={{ width: "100%" }}>
@@ -372,10 +372,10 @@ const MTR_Information = () => {
             onChange={(e) => setStartDate(e.target.value)}
             MenuProps={{
               PaperProps: {
-                sx: { width: isMobile ? 350 : 450 },
+                sx: { width: isMobile ? 300 : 450 },
               },
             }}
-            sx={{ width: isMobile ? 350 : 450 }}
+            sx={{ width: isMobile ? 300 : 450 }}
           />
         </Grid>
 
@@ -389,10 +389,10 @@ const MTR_Information = () => {
             onChange={(e) => setEndDate(e.target.value)}
             MenuProps={{
               PaperProps: {
-                sx: { width: isMobile ? 350 : 450 },
+                sx: { width: isMobile ? 300 : 450 },
               },
             }}
-            sx={{ width: isMobile ? 350 : 450 }}
+            sx={{ width: isMobile ? 300 : 450 }}
           />
         </Grid>
       </Grid>
