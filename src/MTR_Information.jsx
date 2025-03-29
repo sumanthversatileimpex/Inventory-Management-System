@@ -330,6 +330,9 @@ const MTR_Information = () => {
     });
 
     doc.save("FORM_A.pdf");
+    setFormatImporter("");
+    setStartDate("");
+    setEndDate("");
   };
 
 

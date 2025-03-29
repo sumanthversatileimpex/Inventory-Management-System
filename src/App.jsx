@@ -99,7 +99,7 @@ const App = () => {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#FDFAF6" }}>
       <Router>
-        <AppBar position="static" sx={{ bgcolor: "#2C3E50" }}>
+        <AppBar position="sticky" sx={{ bgcolor: "#2C3E50" }}>
           <Toolbar>
             {isMobile && (
               <IconButton edge="start" color="inherit" onClick={() => toggleDrawer(true)}>
@@ -107,12 +107,18 @@ const App = () => {
               </IconButton>
             )}
 
+            {!isMobile && (
+              <Box sx={{ marginRight: 2 }}>
+                <img src="/images/ITL Logo.jpg" alt="Logo" width="40" height="40" />
+              </Box>
+            )}
+
             <Typography
               variant="h6"
               sx={{
                 flexGrow: 1,
                 textAlign: isMobile ? "center" : "left",
-                fontSize: isMobile ? "1.1rem" : "1.2rem",
+                fontSize: isMobile ? "1rem" : "1.2rem",
                 fontWeight: "bold",
                 color: "white",
               }}>
@@ -275,7 +281,7 @@ const App = () => {
           <Route path="/retrieve_handling" element={<DataRetrieval_handling />} />
           <Route path="/retrieve_removals" element={<DataRetrieval_removals />} />
           <Route path="/retrieve_clients" element={<DataRetrieval_clientsInfo />} />
-          <Route path="/mtr_info" element={<MTR_Information/>} />
+          <Route path="/mtr_info" element={<MTR_Information />} />
         </Routes>
       </Router>
     </Box>

@@ -98,7 +98,7 @@ const ReceiptsTable = () => {
     let isValid = true;
     let updatedData = data.map(row => {
       let newRow = { ...row };
-
+  
       columns.forEach(column => {
         if (!row[column.id] || row[column.id] === '') {
           newRow[`${column.id}_error`] = true;
@@ -107,33 +107,53 @@ const ReceiptsTable = () => {
           newRow[`${column.id}_error`] = false;
         }
       });
-
+  
       return newRow;
     });
-    console.log("updatedData", updatedData)
-
+  
+    console.log("Updated Data Before Submission:", updatedData);
     setData(updatedData);
-
+  
     if (!isValid) {
       setSnackbarMessage('Please fill all fields before submitting!');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
       return;
     }
-
-    const { error } = await supabase.from('reciept1').insert(data.map(({ id, ...row }) => row));
-
+  
+    // Remove error fields before inserting into Supabase
+    const filteredData = updatedData.map(({ id, ...row }) => {
+      let cleanedRow = {};
+      Object.keys(row).forEach(key => {
+        if (!key.endsWith('_error')) {
+          cleanedRow[key] = row[key];
+        }
+      });
+      return cleanedRow;
+    });
+  
+    const { error } = await supabase.from('reciept1').insert(filteredData);
+  
     if (error) {
+      console.error("Supabase Error:", error);
       setSnackbarMessage('Submission failed!');
       setSnackbarSeverity('error');
     } else {
       setSnackbarMessage('Data submitted successfully!');
       setSnackbarSeverity('success');
-      setData([{ id: Date.now(), ...staticValues }]); // Reset table with static values
+  
+      // **Reset all fields explicitly**
+      const resetRow = columns.reduce((acc, col) => {
+        acc[col.id] = col.type === 'select' ? '' : ''; // Reset selects & text fields
+        return acc;
+      }, { id: Date.now() });
+  
+      setData([resetRow]); // Reset table with blank row
     }
-
+  
     setOpenSnackbar(true);
   };
+  
 
   return (
     <Paper sx={{ width: '100%', padding: 2, overflowX: 'auto' }}>

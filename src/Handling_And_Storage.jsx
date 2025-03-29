@@ -108,36 +108,50 @@ const HandlingAndStorageTable = () => {
   };
 
   const submitData = async () => {
-      const isValid = data.every(row =>
-      row.bill_of_entry_number && row.invoice_no && row.invoice_serial && row.format_importer &&
+    // Get the latest data state to ensure validation runs correctly
+    const latestData = [...data];
+  
+    // Check if all required fields are filled
+    const isValid = latestData.every(row =>
+      row.bill_of_entry_number &&
+      row.invoice_no &&
+      row.invoice_serial &&
+      row.format_importer &&
       columns.every(col => row[col.id])
     );
-    console.log("isValid data",data)
+  
+    console.log("Validating data:", latestData); // Debugging log
+  
     if (!isValid) {
       setSnackbarMessage('Please fill all fields before submitting!');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
       return;
     }
-
-    // const { error } = await supabase.from('handling_and_storage').insert(
-    //   data.map(({ id, ...row }) => row)
-    // );
-
-    const { error } = await supabase.from('handling_and_storage').insert(
-      data.map(({ id, ...row }) => row)
-    );
-
-    if (error) {
-      setSnackbarMessage('Submission failed!');
-      setSnackbarSeverity('error');
-    } else {
-      setSnackbarMessage('Data submitted successfully!');
-      setSnackbarSeverity('success');
-      setData([{ id: Date.now() }]);
+  
+    try {
+      const { error } = await supabase.from('handling_and_storage').insert(
+        latestData.map(({ id, ...row }) => row)
+      );
+  
+      if (error) {
+        console.error("Supabase Error:", error);
+        setSnackbarMessage('Submission failed!');
+        setSnackbarSeverity('error');
+      } else {
+        setSnackbarMessage('Data submitted successfully!');
+        setSnackbarSeverity('success');
+        setData([{ id: Date.now() }]); // Reset form
+      }
+    } catch (err) {
+      console.error("Unexpected Submission Error:", err);
+      setSnackbarMessage("An unexpected error occurred.");
+      setSnackbarSeverity("error");
     }
+  
     setOpenSnackbar(true);
   };
+  
 
   return (
     <Paper sx={{ width: '100%', padding: 3, overflowX: 'auto' }}>

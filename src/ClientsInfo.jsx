@@ -32,11 +32,6 @@ function ClientsInfo() {
         );
       
         setData(updatedData);
-      
-        if (staticColumns.includes(columnId)) {
-          setStaticValues(prev => ({ ...prev, [columnId]: value }));
-          setData(updatedData.map(row => ({ ...row, [columnId]: value }))); 
-        }
       };
       
       const addRow = () => {
@@ -51,9 +46,10 @@ function ClientsInfo() {
     
       const submitData = async () => {
         let isValid = true;
+      
         let updatedData = data.map(row => {
           let newRow = { ...row };
-        
+      
           columns.forEach(column => {
             if (!row[column.id] || row[column.id] === '') {
               newRow[`${column.id}_error`] = true;
@@ -62,32 +58,51 @@ function ClientsInfo() {
               newRow[`${column.id}_error`] = false;
             }
           });
-    
+      
           return newRow;
         });
-        console.log("updatedData",updatedData)
-         setData(updatedData);
-        
-            if (!isValid) {
-              setSnackbarMessage('Please fill all fields before submitting!');
-              setSnackbarSeverity('error');
-              setOpenSnackbar(true);
-              return;
+      
+        console.log("Updated Data Before Submission:", updatedData);
+      
+        // Ensure UI updates with error highlights
+        setData(updatedData);
+      
+        if (!isValid) {
+          setSnackbarMessage('Please fill all fields before submitting!');
+          setSnackbarSeverity('error');
+          setOpenSnackbar(true);
+          return;
+        }
+      
+        // **Remove `_error` fields before submission**
+        const filteredData = updatedData.map(({ id, ...row }) => {
+          let cleanedRow = {};
+          Object.keys(row).forEach(key => {
+            if (!key.endsWith('_error')) {
+              cleanedRow[key] = row[key];
             }
-        
-            const { error } = await supabase.from('client_details').insert(data.map(({ id, ...row }) => row));
-        
-            if (error) {
-              setSnackbarMessage('Submission failed!');
-              setSnackbarSeverity('error');
-            } else {
-              setSnackbarMessage('Data submitted successfully!');
-              setSnackbarSeverity('success');
-              setData([{ id: Date.now(), ...staticValues }]); // Reset table with static values
-            }
-        
-            setOpenSnackbar(true);
-          };
+          });
+          return cleanedRow;
+        });
+      
+        // **Insert only valid columns into Supabase**
+        const { error } = await supabase.from('client_details').insert(filteredData);
+      
+        if (error) {
+          console.error("Supabase Error:", error);
+          setSnackbarMessage('Submission failed!');
+          setSnackbarSeverity('error');
+        } else {
+          setSnackbarMessage('Data submitted successfully!');
+          setSnackbarSeverity('success');
+          setData([{ id: Date.now(), ...staticValues }]); // Reset table with static values
+        }
+      
+        setOpenSnackbar(true);
+      };
+      
+      
+          
   return (
     <Paper sx={{ width: '100%', padding: 2, overflowX: 'auto' }}>
          <Box sx={{ textAlign: 'center', marginBottom: 2 }}>

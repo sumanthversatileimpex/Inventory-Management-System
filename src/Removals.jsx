@@ -11,11 +11,11 @@ const columns = [
   { id: "purpose_of_removal", label: "Purpose of Removal", type: "text", placeholder: "Enter purpose" },
   { id: "bill_of_entry_no", label: "Shipping Bill of Entry No.", type: "text", placeholder: "Enter entry no." },
   { id: "bill_of_entry_date", label: "Shipping Bill of Entry Date", type: "date", placeholder: "Select entry date" },
-  { id: "quantity_cleared", label: "Quantity Cleared", type: "number", placeholder: "Enter cleared qty", rules: { min: 1 } },
+  { id: "quantity_cleared", label: "Quantity Cleared", type: "number", placeholder: "Enter cleared qty", },
   { id: "value", label: "Value", type: "number", width: 100, placeholder: "Enter value" },
   { id: "duty", label: "Duty", type: "number", width: 100, placeholder: "Enter duty" },
   { id: "interest", label: "Interest", type: "number", width: 100, placeholder: "Enter interest" },
-  { id: "balance_quantity", label: "Balance Quantity", type: "number", placeholder: "Enter balance qty", disabled: true, rules: { min: 0 } },
+  { id: "balance_quantity", label: "Balance Quantity", type: "number", placeholder: "Enter balance qty", disabled: true, },
   { id: "remarks", label: "Remarks", type: "text", placeholder: "Enter remarks" },
 ];
 
@@ -70,6 +70,7 @@ fetchRemovalData();
       if (entry.bill_of_entry_number) {
         uniqueEntries.add(entry.bill_of_entry_number);
         formatImporterData[entry.bill_of_entry_number] = entry.format_importer;
+        orderData[entry.bill_of_entry_number] = entry.order_date;
         invoiceData[entry.bill_of_entry_number] = entry.invoice_no;
 
         // Store invoice serials per bill_of_entry_number
@@ -157,76 +158,65 @@ fetchRemovalData();
 
     // Fetch the latest balance_quantity from removal table
     const { data: removalData, error } = await supabase
-    .from("removal")
-    .select("balance_quantity")
-    .eq("bill_of_entry_number", row.bill_of_entry_number)
-    .eq("invoice_no", row.invoice_no)
-    .eq("invoice_serial", selectedSerial)
-    .order("created_at", { ascending: false }) // Get the latest based on created_at
-    .limit(1);
-
+        .from("removal")
+        .select("balance_quantity")
+        .eq("bill_of_entry_number", row.bill_of_entry_number)
+        .eq("invoice_no", row.invoice_no)
+        .eq("invoice_serial", selectedSerial)
+        .order("created_at", { ascending: false }) // Get the latest based on created_at
+        .limit(1);
 
     let latestBalance = removalData?.length > 0 ? removalData[0].balance_quantity : null;
 
     // If no entry exists in removal, use quantity_received from reciept1
     if (latestBalance === null) {
         latestBalance = quantityReceived[key] || 0;
-        console.log("heyy------------------")
     }
 
     console.log("🔎 Searching with key:", key);
     console.log("✅ Latest Balance Quantity:", latestBalance);
 
-    // Store in state
+    // Update data state, ensuring `initial_balance` is reset
     setData(prevData =>
         prevData.map(r =>
             r.id === rowId
-                ? { ...r, invoice_serial: selectedSerial, balance_quantity: latestBalance }
+                ? {
+                    ...r,
+                    invoice_serial: selectedSerial,
+                    balance_quantity: latestBalance,
+                    initial_balance: latestBalance, 
+                    quantity_cleared: 0
+                }
                 : r
         )
     );
 };
 
 
+
 const handleQuantityClearedChange = (rowId, value) => {
   setData(prevData =>
-      prevData.map(row => {
-          if (row.id === rowId) {
-              const clearedQuantity = value ? parseFloat(value) : 0;
-              let currentBalance = row.balance_quantity ?? 0;
+    prevData.map(row => {
+      if (row.id === rowId) {
+        const clearedQuantity = value !== "" ? parseFloat(value) : 0; // Ensure 0 is correctly handled
+        const initialBalance = row.initial_balance ?? row.balance_quantity; // Always use latest initial balance
+        
+        let newBalance = initialBalance - clearedQuantity;
+        if (newBalance < 0) newBalance = 0; // Prevent negative values
 
-              // Restore original balance when value is cleared (set it back to previous balance)
-              let newBalance;
-              if (!value) {
-                  newBalance = row.initial_balance ?? currentBalance; // Reset to original if cleared
-              } else {
-                  newBalance = currentBalance - clearedQuantity;
-                  if (newBalance < 0) newBalance = 0; // Prevent negative values
-              }
+        console.log("newBalance", newBalance);
+        console.log("value", value);
 
-              return { 
-                  ...row, 
-                  quantity_cleared: clearedQuantity, 
-                  balance_quantity: newBalance,
-                  initial_balance: row.initial_balance ?? row.balance_quantity // Store original balance once, only for reference
-              };
-          }
-          return row;
-      })
+        return {
+          ...row,
+          quantity_cleared: clearedQuantity, // Store correct cleared quantity
+          balance_quantity: newBalance, // Update balance
+          initial_balance: initialBalance, // Ensure initial balance remains stored
+        };
+      }
+      return row;
+    })
   );
-};
-
-// Function to send data to DB (EXCLUDE initial_balance)
-const submitDataToDB = async () => {
-  const filteredData = data.map(({ initial_balance, ...rest }) => rest); // Remove initial_balance
-
-  const { error } = await supabase.from("your_table_name").insert(filteredData);
-
-  if (error) {
-      console.error("Error inserting data:", error);
-  } else {
-      console.log("Data inserted successfully!");
-  }
 };
 
 
@@ -241,43 +231,51 @@ const submitDataToDB = async () => {
     }
   };
 
+
   const submitData = async () => {
+    // Ensure we use the latest state
     const isValid = data.every(row =>
-      row.bill_of_entry_number && row.invoice_no && row.invoice_serial && row.format_importer && 
-      columns.every(col => row[col.id])
+      row.bill_of_entry_number &&
+      row.invoice_no &&
+      row.invoice_serial &&
+      row.format_importer &&
+      columns.every(col => row[col.id]) // Ensure all columns have values
     );
-    console.log("isValid data", data)
+  
+    console.log("Validating data:", data); // Debugging log
+  
     if (!isValid) {
       setSnackbarMessage('Please fill all fields before submitting!');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
       return;
     }
-
-    // const { error } = await supabase.from("removal").insert(
-    //   data.map(({ id, ...row }) => row)
-    // );
-    
+  
     const filteredData = data.map(({ initial_balance, ...rest }) => rest);
-    const { error } = await supabase.from("removal").insert(
-      filteredData
-    );
-
-    // const { error } = await supabase.from("removal").insert(
-    //   data.map(({ id, ...row }) => row)
-    // );
-
-    if (error) {
-      setSnackbarMessage("Submission failed!");
+  
+    try {
+      const { error } = await supabase.from("removal").insert(filteredData);
+  
+      if (error) {
+        console.error("Supabase Error:", error);
+        setSnackbarMessage("Submission failed! " + error.message);
+        setSnackbarSeverity("error");
+      } else {
+        setSnackbarMessage("Data submitted successfully!");
+        setSnackbarSeverity("success");
+        setData([{ id: Date.now() }]); // Reset form
+      }
+    } catch (err) {
+      console.error("Submission Error:", err);
+      setSnackbarMessage("An unexpected error occurred.");
       setSnackbarSeverity("error");
-    } else {
-      setSnackbarMessage("Data submitted successfully!");
-      setSnackbarSeverity("success");
-      setData([{ id: Date.now() }]);
     }
+  
     setOpenSnackbar(true);
+    console.log("filteredData:", filteredData);
   };
-
+  
+  
   return (
     <Paper sx={{ width: "100%", padding: 2, overflowX: "auto" }}>
       <Box sx={{ textAlign: "center", marginBottom: 2 }}>
@@ -354,7 +352,7 @@ const submitDataToDB = async () => {
                     {column.id === "quantity_cleared" ? (
                       <TextField
                         type="number"
-                        value={row.quantity_cleared || ""}
+                        value={row.quantity_cleared || null}
                         onChange={(e) => handleQuantityClearedChange(row.id, e.target.value)}
                         placeholder={column.placeholder}
                         fullWidth
@@ -363,7 +361,7 @@ const submitDataToDB = async () => {
                     ) : column.id === "balance_quantity" ? (
                       <TextField
                         type="number"
-                        value={row.balance_quantity || ""}
+                        value={row.balance_quantity || 0}
                         disabled
                         fullWidth
                         sx={{ minWidth: 150 }}
