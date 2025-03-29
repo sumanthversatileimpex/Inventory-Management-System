@@ -251,11 +251,11 @@ const MTR_Information = () => {
           removalData[index]?.purpose_of_removal || "NILL",
           // "25A" - Merging bill_of_entry_no and bill_of_entry_date
           `${removalData[index]?.bill_of_entry_no || "NILL"} (${removalData[index]?.bill_of_entry_date || "NILL"})`,
-          removalData[index]?.quantity_cleared || "NILL",
-          removalData[index]?.value || "NILL",
-          removalData[index]?.duty || "NILL",
-          removalData[index]?.interest || "NILL",
-          removalData[index]?.balance_quantity || "NILL",
+          removalData[index]?.quantity_cleared || "0",
+          removalData[index]?.value || "0",
+          removalData[index]?.duty || "0",
+          removalData[index]?.interest || "0",
+          removalData[index]?.balance_quantity || "0",
           removalData[index]?.remarks || "NILL",
         ])
       ],

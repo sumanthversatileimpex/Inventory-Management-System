@@ -145,7 +145,7 @@ fetchRemovalData();
 
   const handleInvoiceSerialChange = async (rowId, selectedSerial) => {
     if (Array.isArray(selectedSerial)) {
-        selectedSerial = selectedSerial[0]; // Ensure it's a string
+        selectedSerial = selectedSerial[0];
     }
 
     const row = data.find(r => r.id === rowId);
@@ -163,12 +163,11 @@ fetchRemovalData();
         .eq("bill_of_entry_number", row.bill_of_entry_number)
         .eq("invoice_no", row.invoice_no)
         .eq("invoice_serial", selectedSerial)
-        .order("created_at", { ascending: false }) // Get the latest based on created_at
+        .order("created_at", { ascending: false }) 
         .limit(1);
 
     let latestBalance = removalData?.length > 0 ? removalData[0].balance_quantity : null;
 
-    // If no entry exists in removal, use quantity_received from reciept1
     if (latestBalance === null) {
         latestBalance = quantityReceived[key] || 0;
     }
@@ -176,15 +175,27 @@ fetchRemovalData();
     console.log("🔎 Searching with key:", key);
     console.log("✅ Latest Balance Quantity:", latestBalance);
 
-    // Update data state, ensuring `initial_balance` is reset
+    const previousRows = data.filter(r =>
+        r.bill_of_entry_number === row.bill_of_entry_number &&
+        r.invoice_no === row.invoice_no &&
+        r.invoice_serial === selectedSerial
+    );
+
+    const totalClearedInPreviousRows = previousRows.reduce((sum, r) => sum + (r.quantity_cleared || 0), 0);
+    const adjustedBalance = latestBalance - totalClearedInPreviousRows;
+
+    console.log("🔢 Total Cleared in Previous Rows:", totalClearedInPreviousRows);
+    console.log("🔄 Adjusted Balance:", adjustedBalance);
+
+    // Update data state, ensuring initial_balance is reset
     setData(prevData =>
         prevData.map(r =>
             r.id === rowId
                 ? {
                     ...r,
                     invoice_serial: selectedSerial,
-                    balance_quantity: latestBalance,
-                    initial_balance: latestBalance, 
+                    balance_quantity: adjustedBalance >= 0 ? adjustedBalance : 0,
+                    initial_balance: adjustedBalance >= 0 ? adjustedBalance : 0,
                     quantity_cleared: 0
                 }
                 : r
@@ -193,25 +204,24 @@ fetchRemovalData();
 };
 
 
-
 const handleQuantityClearedChange = (rowId, value) => {
   setData(prevData =>
     prevData.map(row => {
       if (row.id === rowId) {
-        const clearedQuantity = value !== "" ? parseFloat(value) : 0; // Ensure 0 is correctly handled
-        const initialBalance = row.initial_balance ?? row.balance_quantity; // Always use latest initial balance
+        const clearedQuantity = value !== "" ? parseFloat(value) : 0; 
+        const initialBalance = row.initial_balance ?? row.balance_quantity;
         
         let newBalance = initialBalance - clearedQuantity;
-        if (newBalance < 0) newBalance = 0; // Prevent negative values
+        if (newBalance < 0) newBalance = 0;
 
         console.log("newBalance", newBalance);
         console.log("value", value);
 
         return {
           ...row,
-          quantity_cleared: clearedQuantity, // Store correct cleared quantity
-          balance_quantity: newBalance, // Update balance
-          initial_balance: initialBalance, // Ensure initial balance remains stored
+          quantity_cleared: clearedQuantity, 
+          balance_quantity: newBalance, 
+          initial_balance: initialBalance, 
         };
       }
       return row;
@@ -233,16 +243,16 @@ const handleQuantityClearedChange = (rowId, value) => {
 
 
   const submitData = async () => {
-    // Ensure we use the latest state
     const isValid = data.every(row =>
       row.bill_of_entry_number &&
       row.invoice_no &&
       row.invoice_serial &&
       row.format_importer &&
-      columns.every(col => row[col.id]) // Ensure all columns have values
+      columns.every(col => row[col.id] !== null && row[col.id] !== undefined) 
     );
+    
   
-    console.log("Validating data:", data); // Debugging log
+    console.log("Validating data:", data); 
   
     if (!isValid) {
       setSnackbarMessage('Please fill all fields before submitting!');
