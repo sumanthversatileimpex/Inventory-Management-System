@@ -46,7 +46,6 @@ const HomePage = () => {
           marginTop: 10,
         }}
       >
-        {/* Logo at the Top */}
         <img
           src={itlLogo}
           alt="ITL Logo"
@@ -109,7 +108,7 @@ const App = () => {
 
             {!isMobile && (
               <Box sx={{ marginRight: 2 }}>
-                <img src="/images/ITL Logo.jpg" alt="Logo" width="40" height="40" />
+                <img  src={itlLogo} alt="Logo" width="40" height="40" />
               </Box>
             )}
 
@@ -130,9 +129,6 @@ const App = () => {
                 <Button color="inherit" component={Link} to="/" sx={{ color: "white" }}>
                   Home
                 </Button>
-                {/* <Button color="inherit" component={Link} to="/receipts" sx={{ color: "white" }}>
-                Receipts
-              </Button> */}
 
                 {/* Data Entry Dropdown */}
                 <Button
@@ -148,10 +144,10 @@ const App = () => {
                   open={Boolean(dataEntryAnchor)}
                   onClose={() => handleMenuClose(setDataEntryAnchor)}
                 >
-                  <MenuItem component={Link} to="/receipts">Receipts</MenuItem>
-                  <MenuItem component={Link} to="/handling_and_storage">Handling & Storage</MenuItem>
-                  <MenuItem component={Link} to="/removals">Removals</MenuItem>
-                  <MenuItem component={Link} to="/clients_info">Clients Info</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/receipts">Receipts</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/handling_and_storage">Handling & Storage</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/removals">Removals</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/clients_info">Clients Info</MenuItem>
                 </Menu>
 
                 {/* Data Retrieval Dropdown */}
@@ -168,10 +164,10 @@ const App = () => {
                   open={Boolean(dataRetrievalAnchor)}
                   onClose={() => handleMenuClose(setDataRetrievalAnchor)}
                 >
-                  <MenuItem component={Link} to="/retrieve">Receipts Data</MenuItem>
-                  <MenuItem component={Link} to="/retrieve_handling">Handling & Storage Data</MenuItem>
-                  <MenuItem component={Link} to="/retrieve_removals">Removals Data</MenuItem>
-                  <MenuItem component={Link} to="/retrieve_clients">Clients Data</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve">Receipts Data</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_handling">Handling & Storage Data</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_removals">Removals Data</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_clients">Clients Data</MenuItem>
                 </Menu>
 
                 {/* MTR Information */}
