@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { supabase } from "../context/supabaseClient";
+import { supabase } from "../../context/supabaseClient";
 import { Button, Box , Paper, Typography, MenuItem, Select, FormControl, InputLabel, Grid, TextField, Tooltip } from "@mui/material";
 import { useMediaQuery } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";

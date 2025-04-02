@@ -1,18 +1,19 @@
-import React from "react";
+import React , { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link ,Navigate } from "react-router-dom";
 import {Box} from "@mui/material";
+import { supabase } from "./context/supabaseClient";
 
 import { AuthProvider } from "./context/AuthContext";
 import NavBar from "./components/NavBar";
-import ReceiptsTable from "./pages/ReceiptsTable";
-import Handling_And_Storage from "./pages/Handling_And_Storage";
-import Removals from "./pages/Removals";
+import ReceiptsTable from "./pages/data_entry/ReceiptsTable";
+import Handling_And_Storage from "./pages/data_entry/Handling_And_Storage";
+import Removals from "./pages/data_entry/Removals";
 import ClientsInfo from "./pages/ClientsInfo";
-import DataRetrieval from "./pages/DataRetrieval";
-import DataRetrieval_handling from "./pages/DataRetrieval_handling";
-import DataRetrieval_removals from "./pages/DataRetrieval_removals";
-import DataRetrieval_clientsInfo from "./pages/DataRetrieval_clientsInfo";
-import MTR_Information from "./pages/MTR_Information";
+import DataRetrieval from "./pages/data_retrivals/DataRetrieval";
+import DataRetrieval_handling from "./pages/data_retrivals/DataRetrieval_handling";
+import DataRetrieval_removals from "./pages/data_retrivals/DataRetrieval_removals";
+import DataRetrieval_clientsInfo from "./pages/data_retrivals/DataRetrieval_clientsInfo";
+import MTR_Information from "./pages/data_entry/MTR_Information";
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -21,6 +22,20 @@ import ForgotPassword from "./pages/ForgotPassword";
 import AuthInventory from "./pages/AuthIventory";
 
 const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(null); // Initially null to track loading state
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session); // Set true if session exists
+    };
+    checkUser();
+  }, []);
+
+  if (isAuthenticated === null) {
+    return <div>Loading...</div>; // Prevents flickering while checking auth state
+  }
+  
   return (
     <AuthProvider>
     <Box sx={{ minHeight: "100vh", 
@@ -31,6 +46,7 @@ const App = () => {
            <NavBar/>
       {/* <NavBar/> */}
         <Routes>
+          <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <Navigate to="/auth-inventory" replace />} />
           <Route path='/' element={<Navigate to="/auth-inventory" replace />} />
           <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} />
           <Route path="/receipts" element={<PrivateRoute><ReceiptsTable /> </PrivateRoute>} />

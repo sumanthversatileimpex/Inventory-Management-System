@@ -99,6 +99,10 @@ const AuthInventory = () => {
     } else {
       try {
         await supabase.from("profiles").insert([{ id: data.user.id, username, phone, email }]);
+        setEmail("");
+        setPassword("");
+        setUsername("");
+        setPhone("");
         setToast({
           open: true,
           message: "Check your email for confirmation!",
