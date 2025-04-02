@@ -1,5 +1,5 @@
 import React, { useState ,useEffect} from 'react';
-import { supabase } from './lib/supabaseClient';
+import { supabase } from '../context/supabaseClient';
 import {
   Paper, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Button, TextField, Snackbar, Alert, Box, Typography, MenuItem, Select
@@ -154,7 +154,7 @@ const HandlingAndStorageTable = () => {
   
 
   return (
-    <Paper sx={{ width: '100%', padding: 3, overflowX: 'auto' }}>
+    <Paper sx={{ width: '100%', padding: 2, overflowX: 'auto' }}>
       <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1F618D' }}>
           Handling & Storage

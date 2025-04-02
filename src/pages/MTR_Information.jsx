@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { supabase } from "./lib/supabaseClient";
+import { supabase } from "../context/supabaseClient";
 import { Button, Box , Paper, Typography, MenuItem, Select, FormControl, InputLabel, Grid, TextField, Tooltip } from "@mui/material";
 import { useMediaQuery } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -110,9 +110,23 @@ const MTR_Information = () => {
       const client = data.find(client => client.client_name === formatImporter);
 
       if (client) {
+        // Format the date range
+        let dateRangeString = '';
+        
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          
+          dateRangeString = `${start.toLocaleDateString()} to ${end.toLocaleDateString()}`;
+        } else if (startDate) {
+          dateRangeString = `from ${new Date(startDate).toLocaleDateString()}`;
+        } else if (endDate) {
+          dateRangeString = `to ${new Date(endDate).toLocaleDateString()}`;
+        }
+      
         // Format the required fields
-        const formattedString = `F. No. ${client.file_no} / BOND DT. ${client.file_date} / PERMANENT CODE: ${client.warehouse_code} - ${client.client_name}, Unit: ${client.address} (${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })})`;
-
+        const formattedString = `F. No. ${client.file_no} / BOND DT. ${client.file_date} / PERMANENT CODE: ${client.warehouse_code} - ${client.client_name}, Unit: ${client.address}${dateRangeString ? ` (${dateRangeString})` : ''}`;
+      
         console.log("Formatted String:", formattedString);
         return formattedString;
       } else {

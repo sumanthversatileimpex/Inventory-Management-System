@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from './lib/supabaseClient';
+import { supabase } from '../context/supabaseClient';
 import {
   Paper, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Button, TextField, Snackbar, Alert, Box, Typography,

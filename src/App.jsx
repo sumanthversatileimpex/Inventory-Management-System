@@ -1,286 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Menu,
-  MenuItem,
-  Avatar,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  IconButton,
-  Box,
-  useMediaQuery,
-  Container,
-  Paper,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import MenuIcon from "@mui/icons-material/Menu";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Link ,Navigate } from "react-router-dom";
+import {Box} from "@mui/material";
 
-// Import Components
-import ReceiptsTable from "./ReceiptsTable";
-import Handling_And_Storage from "./Handling_And_Storage";
-import Removals from "./Removals";
-import ClientsInfo from "./ClientsInfo";
-import DataRetrieval from "./DataRetrieval";
-import DataRetrieval_handling from "./DataRetrieval_handling";
-import DataRetrieval_removals from "./DataRetrieval_removals";
-import DataRetrieval_clientsInfo from "./DataRetrieval_clientsInfo";
-import MTR_Information from "./MTR_Information";
-import itlLogo from "/images/ITL Logo.jpg";
-
-const HomePage = () => {
-  return (
-    <Container maxWidth="md">
-      <Paper
-        elevation={3}
-        sx={{
-          padding: 4,
-          textAlign: "center",
-          marginTop: 10,
-        }}
-      >
-        <img
-          src={itlLogo}
-          alt="ITL Logo"
-          style={{ width: "120px", height: "auto", marginBottom: "16px" }}
-        />
-
-        <Typography variant="h5" fontWeight="bold" color="#2C3E50">
-          Welcome to Inventory Management System
-        </Typography>
-        <Typography variant="body1" color="textSecondary" sx={{ marginTop: 2 }}>
-          Manage your Receipts, Handling & Storage, Removals, and Client information efficiently.
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{ marginTop: 3 }}
-          component={Link}
-          to="/receipts"
-        >
-          Get Started
-        </Button>
-      </Paper>
-    </Container>
-  );
-};
-
-
+import { AuthProvider } from "./context/AuthContext";
+import NavBar from "./components/NavBar";
+import ReceiptsTable from "./pages/ReceiptsTable";
+import Handling_And_Storage from "./pages/Handling_And_Storage";
+import Removals from "./pages/Removals";
+import ClientsInfo from "./pages/ClientsInfo";
+import DataRetrieval from "./pages/DataRetrieval";
+import DataRetrieval_handling from "./pages/DataRetrieval_handling";
+import DataRetrieval_removals from "./pages/DataRetrieval_removals";
+import DataRetrieval_clientsInfo from "./pages/DataRetrieval_clientsInfo";
+import MTR_Information from "./pages/MTR_Information";
+import HomePage from "./pages/HomePage";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import PrivateRoute from "./components/PrivateRoute";
+import ForgotPassword from "./pages/ForgotPassword";
+import AuthInventory from "./pages/AuthIventory";
 
 const App = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [dataEntryAnchor, setDataEntryAnchor] = useState(null);
-  const [dataRetrievalAnchor, setDataRetrievalAnchor] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
-  const handleMenuOpen = (event, setAnchor) => {
-    setAnchor(event.currentTarget);
-  };
-
-  const handleMenuClose = (setAnchor) => {
-    setAnchor(null);
-  };
-
-  const toggleDrawer = (open) => {
-    setDrawerOpen(open);
-  };
-
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#FDFAF6" }}>
+    <AuthProvider>
+    <Box sx={{ minHeight: "100vh", 
+    display: "flex", 
+    flexDirection: "column",  
+    fontFamily: `'Poppins', 'Avenir', 'Helvetica', 'Arial', sans-serif` }}>
       <Router>
-        <AppBar position="sticky" sx={{ bgcolor: "#2C3E50" }}>
-          <Toolbar>
-            {isMobile && (
-              <IconButton edge="start" color="inherit" onClick={() => toggleDrawer(true)}>
-                <MenuIcon />
-              </IconButton>
-            )}
-
-            {!isMobile && (
-              <Box sx={{ marginRight: 2 }}>
-                <img  src={itlLogo} alt="Logo" width="40" height="40" />
-              </Box>
-            )}
-
-            <Typography
-              variant="h6"
-              sx={{
-                flexGrow: 1,
-                textAlign: isMobile ? "center" : "left",
-                fontSize: isMobile ? "1rem" : "1.2rem",
-                fontWeight: "bold",
-                color: "white",
-              }}>
-              Inventory Management System
-            </Typography>
-
-            {!isMobile && (
-              <>
-                <Button color="inherit" component={Link} to="/" sx={{ color: "white" }}>
-                  Home
-                </Button>
-
-                {/* Data Entry Dropdown */}
-                <Button
-                  color="inherit"
-                  endIcon={<ArrowDropDownIcon />}
-                  onClick={(event) => handleMenuOpen(event, setDataEntryAnchor)}
-                  sx={{ color: "white" }}
-                >
-                  Data Entry
-                </Button>
-                <Menu
-                  anchorEl={dataEntryAnchor}
-                  open={Boolean(dataEntryAnchor)}
-                  onClose={() => handleMenuClose(setDataEntryAnchor)}
-                >
-                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/receipts">Receipts</MenuItem>
-                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/handling_and_storage">Handling & Storage</MenuItem>
-                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/removals">Removals</MenuItem>
-                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/clients_info">Clients Info</MenuItem>
-                </Menu>
-
-                {/* Data Retrieval Dropdown */}
-                <Button
-                  color="inherit"
-                  endIcon={<ArrowDropDownIcon />}
-                  onClick={(event) => handleMenuOpen(event, setDataRetrievalAnchor)}
-                  sx={{ color: "white" }}
-                >
-                  Data Retrieval
-                </Button>
-                <Menu
-                  anchorEl={dataRetrievalAnchor}
-                  open={Boolean(dataRetrievalAnchor)}
-                  onClose={() => handleMenuClose(setDataRetrievalAnchor)}
-                >
-                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve">Receipts Data</MenuItem>
-                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_handling">Handling & Storage Data</MenuItem>
-                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_removals">Removals Data</MenuItem>
-                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_clients">Clients Data</MenuItem>
-                </Menu>
-
-                {/* MTR Information */}
-                <Button color="inherit" component={Link} to="/mtr_info" sx={{ color: "white" }}>
-                  MTR
-                </Button>
-              </>
-            )}
-
-            {/* Avatar and User Menu */}
-            <IconButton onClick={(event) => handleMenuOpen(event, setAnchorEl)} sx={{ marginLeft: 2 }}>
-              <Avatar alt="User" src="/avatar.png" />
-            </IconButton>
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => handleMenuClose(setAnchorEl)}>
-              <MenuItem>User 123</MenuItem>
-              <MenuItem>+1234567890</MenuItem>
-            </Menu>
-          </Toolbar>
-        </AppBar>
-
-        {/* Mobile Side Drawer */}
-        <Drawer anchor="left" open={drawerOpen} onClose={() => toggleDrawer(false)}>
-          <Box sx={{ width: 250 }} role="presentation" onClick={() => toggleDrawer(false)}>
-            <List>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/">
-                  <ListItemText primary="Home" />
-                </ListItemButton>
-              </ListItem>
-
-              {/* Data Entry Dropdown */}
-              <ListItem disablePadding>
-                <ListItemButton>
-                  <ListItemText primary="Data Entry" />
-                </ListItemButton>
-              </ListItem>
-              <List sx={{ pl: 4 }}>
-                <ListItem disablePadding>
-                  <ListItemButton component={Link} to="/receipts">
-                    <ListItemText primary="Receipts" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton component={Link} to="/handling_and_storage">
-                    <ListItemText primary="Handling & Storage" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton component={Link} to="/removals">
-                    <ListItemText primary="Removals" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton component={Link} to="/clients_info">
-                    <ListItemText primary="Clients Info" />
-                  </ListItemButton>
-                </ListItem>
-              </List>
-
-              {/* Data Retrieval Dropdown */}
-              <ListItem disablePadding>
-                <ListItemButton>
-                  <ListItemText primary="Data Retrieval" />
-                </ListItemButton>
-              </ListItem>
-              <List sx={{ pl: 4 }}>
-                <ListItem disablePadding>
-                  <ListItemButton component={Link} to="/retrieve">
-                    <ListItemText primary="Receipts Data" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton component={Link} to="/retrieve_handling">
-                    <ListItemText primary="Handling & Storage Data" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton component={Link} to="/retrieve_removals">
-                    <ListItemText primary="Removals Data" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton component={Link} to="/retrieve_clients">
-                    <ListItemText primary="Clients Data" />
-                  </ListItemButton>
-                </ListItem>
-              </List>
-
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/mtr_info">
-                  <ListItemText primary="MTR" />
-                </ListItemButton>
-              </ListItem>
-            </List>
-          </Box>
-        </Drawer>
-
-
-        {/* Routes */}
+           <NavBar/>
+      {/* <NavBar/> */}
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/receipts" element={<ReceiptsTable />} />
-          <Route path="/handling_and_storage" element={<Handling_And_Storage />} />
-          <Route path="/removals" element={<Removals />} />
-          <Route path="/clients_info" element={<ClientsInfo />} />
-          <Route path="/retrieve" element={<DataRetrieval />} />
-          <Route path="/retrieve_handling" element={<DataRetrieval_handling />} />
-          <Route path="/retrieve_removals" element={<DataRetrieval_removals />} />
-          <Route path="/retrieve_clients" element={<DataRetrieval_clientsInfo />} />
-          <Route path="/mtr_info" element={<MTR_Information />} />
+          <Route path='/' element={<Navigate to="/auth-inventory" replace />} />
+          <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} />
+          <Route path="/receipts" element={<PrivateRoute><ReceiptsTable /> </PrivateRoute>} />
+          <Route path="/handling_and_storage" element={<PrivateRoute><Handling_And_Storage /></PrivateRoute>} />
+          <Route path="/removals" element={<PrivateRoute><Removals /></PrivateRoute>} />
+          <Route path="/clients_info" element={<PrivateRoute><ClientsInfo /></PrivateRoute>} />
+          <Route path="/retrieve" element={<PrivateRoute><DataRetrieval /></PrivateRoute>} />
+          <Route path="/retrieve_handling" element={<PrivateRoute><DataRetrieval_handling /></PrivateRoute>} />
+          <Route path="/retrieve_removals" element={<PrivateRoute><DataRetrieval_removals /></PrivateRoute>} />
+          <Route path="/retrieve_clients" element={<PrivateRoute><DataRetrieval_clientsInfo /></PrivateRoute>} />
+          <Route path="/mtr_info" element={<PrivateRoute><MTR_Information /></PrivateRoute>} />
+          {/* <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} /> */}
+          <Route path="/auth-inventory" element={<AuthInventory />} />
         </Routes>
       </Router>
     </Box>
+    </AuthProvider>
   );
 };
 
