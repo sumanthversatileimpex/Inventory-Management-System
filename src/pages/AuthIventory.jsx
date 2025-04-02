@@ -60,28 +60,28 @@ const AuthInventory = () => {
     e.preventDefault();
     
     // First check if user already exists
-    const { data: existingUsers, error: lookupError } = await supabase
-      .from('profiles')
-      .select('*')
-      .or(`email.eq.${email},username.eq.${username}`);
+    // const { data: existingUsers, error: lookupError } = await supabase
+    //   .from('profiles')
+    //   .select('*')
+    //   .or(`email.eq.${email},username.eq.${username}`);
 
-    if (lookupError) {
-      setToast({
-        open: true,
-        message: "Error checking existing users",
-        severity: "error",
-      });
-      return;
-    }
+    // if (lookupError) {
+    //   setToast({
+    //     open: true,
+    //     message: "Error checking existing users",
+    //     severity: "error",
+    //   });
+    //   return;
+    // }
 
-    if (existingUsers && existingUsers.length > 0) {
-      setToast({
-        open: true,
-        message: "User with this email or username already exists",
-        severity: "error",
-      });
-      return;
-    }
+    // if (existingUsers && existingUsers.length > 0) {
+    //   setToast({
+    //     open: true,
+    //     message: "User with this email or username already exists",
+    //     severity: "error",
+    //   });
+    //   return;
+    // }
 
     // Proceed with signup if user doesn't exist
     const { data, error } = await supabase.auth.signUp({
