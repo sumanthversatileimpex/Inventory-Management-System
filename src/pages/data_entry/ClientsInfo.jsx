@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../context/supabaseClient';
+import { supabase } from '../../context/supabaseClient';
 import {
   Paper, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Button, TextField, Snackbar, Alert, Box, Typography,
@@ -106,7 +106,7 @@ function ClientsInfo() {
   return (
     <Paper sx={{ width: '100%', padding: 2, overflowX: 'auto' }}>
          <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
-           <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1F618D' }}>Clients Info</Typography>
+           <Typography variant="h5" sx={{ fontWeight: 'bold' , color:"#2C3E50" }}>Clients Info</Typography>
          </Box>
    
          <TableContainer sx={{ maxHeight: 500, overflow: 'auto', borderRadius: '7px' }}>

@@ -61,7 +61,7 @@ function DataRetrieval_clientsInfo() {
   
   return (
      <Paper sx={{ padding: 2, overflowX: 'auto' }}>
-         <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 }}>Clients Data</Typography>
+         <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 , color:"#2C3E50"}}>Clients Data</Typography>
    
          <Box sx={{ overflowX: 'auto' }}>
            <TableContainer sx={{ borderRadius: '7px', minWidth: '900px' }}>

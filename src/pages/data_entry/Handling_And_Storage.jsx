@@ -156,7 +156,7 @@ const HandlingAndStorageTable = () => {
   return (
     <Paper sx={{ width: '100%', padding: 2, overflowX: 'auto' }}>
       <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1F618D' }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold' ,color:"#2C3E50" }}>
           Handling & Storage
         </Typography>
       </Box>

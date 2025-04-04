@@ -108,6 +108,7 @@ const NavBar = () => {
                   <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/handling_and_storage">Handling & Storage</MenuItem>
                   <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/removals">Removals</MenuItem>
                   <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/clients_info">Clients Info</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataEntryAnchor)} to="/balance_ext">Balance & Extensions</MenuItem>
                 </Menu>
 
                 {/* Data Retrieval Dropdown */}
@@ -128,6 +129,8 @@ const NavBar = () => {
                   <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_handling">Handling & Storage Data</MenuItem>
                   <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_removals">Removals Data</MenuItem>
                   <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_clients">Clients Data</MenuItem>
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setDataRetrievalAnchor)} to="/retrieve_balance"> Balance & Extensions Data</MenuItem>
+
                 </Menu>
 
                 {/* MTR Information */}

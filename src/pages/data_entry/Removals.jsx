@@ -31,21 +31,22 @@ const Removals = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [formatToBillEntries, setFormatToBillEntries] = useState({});
 
   const fetchRemovalData = async () => {
     const { data, error } = await supabase
-        .from("removal")
-        .select("bill_of_entry_number, invoice_no, invoice_serial, balance_quantity, format_importer, order_date, date_and_time_of_removal, purpose_of_removal, bill_of_entry_no, bill_of_entry_date, quantity_cleared, value, duty, interest, remarks"); // Removed original_balance_quantity
+      .from("removal")
+      .select("bill_of_entry_number, invoice_no, invoice_serial, balance_quantity, format_importer, order_date, date_and_time_of_removal, purpose_of_removal, bill_of_entry_no, bill_of_entry_date, quantity_cleared, value, duty, interest, remarks"); // Removed original_balance_quantity
 
     if (error) {
-        console.error("❌ Error fetching removal data:", error);
-        return;
+      console.error("❌ Error fetching removal data:", error);
+      return;
     }
 
     console.log("✅ Fetched Removal Data:", data);
-};
+  };
 
-fetchRemovalData();
+  fetchRemovalData();
 
 
 
@@ -65,29 +66,39 @@ fetchRemovalData();
     const formatImporterData = {};
     const orderData = {};
     const quantityData = {};
+    const formatToBillEntries = {};
 
     data.forEach(entry => {
-      if (entry.bill_of_entry_number) {
-        uniqueEntries.add(entry.bill_of_entry_number);
-        formatImporterData[entry.bill_of_entry_number] = entry.format_importer;
-        orderData[entry.bill_of_entry_number] = entry.order_date;
-        invoiceData[entry.bill_of_entry_number] = entry.invoice_no;
+      const format = entry.format_importer;
+      const boe = entry.bill_of_entry_number;
 
-        // Store invoice serials per bill_of_entry_number
-        if (!serialData[entry.bill_of_entry_number]) {
-          serialData[entry.bill_of_entry_number] = [];
+      if (format && boe) {
+        // Format → Bill Mapping
+        if (!formatToBillEntries[format]) {
+          formatToBillEntries[format] = new Set();
         }
+        formatToBillEntries[format].add(boe);
+
+        // Store other mappings as before...
+        formatImporterData[boe] = format;
+        invoiceData[boe] = entry.invoice_no;
+        orderData[boe] = entry.order_date;
+
+        if (!serialData[boe]) serialData[boe] = [];
         if (entry.invoice_serial) {
-          serialData[entry.bill_of_entry_number].push(...entry.invoice_serial.split(','));
+          serialData[boe].push(...entry.invoice_serial.split(','));
         }
 
-        // Store quantity received based on all three: bill_of_entry_number, invoice_no, invoice_serial
-        const key = `${entry.bill_of_entry_number}_${entry.invoice_no}_${entry.invoice_serial}`;
+        const key = `${boe}_${entry.invoice_no}_${entry.invoice_serial}`;
         quantityData[key] = entry.quantity_received || 0;
-
-        orderData[entry.bill_of_entry_number] = entry.order_date;
       }
     });
+
+    Object.keys(formatToBillEntries).forEach(format => {
+      formatToBillEntries[format] = Array.from(formatToBillEntries[format]);
+    });
+
+    setFormatToBillEntries(formatToBillEntries); // new
 
     setBillEntries(Array.from(uniqueEntries));
     setFormatImporter(formatImporterData);
@@ -106,9 +117,6 @@ fetchRemovalData();
   // console.log("Order Date Data:", orderDateData);
   // console.log("quantityReceived", quantityReceived);
   // console.log("invoiceSerials", invoiceSerials)
-  useEffect(() => {
-    fetchBillEntries();
-  }, []);
 
   useEffect(() => {
     console.log("Fetched Bill Entries:", billEntries);
@@ -122,6 +130,25 @@ fetchRemovalData();
       prevData.map(row => (row.id === id ? { ...row, [columnId]: value } : row))
     );
   };
+
+  const handleFormatImporterChange = (rowId, newFormatImporter) => {
+    setData(prevData =>
+      prevData.map(row =>
+        row.id === rowId
+          ? {
+            ...row,
+            format_importer: newFormatImporter,
+            bill_of_entry_number: "",  // reset
+            invoice_no: "",
+            invoice_serial: "",
+            order_date: null,
+            balance_quantity: ""
+          }
+          : row
+      )
+    );
+  };
+
 
   const handleBillOfEntryChange = (rowId, billOfEntryNumber) => {
     // Find invoice_no from stored data
@@ -145,40 +172,40 @@ fetchRemovalData();
 
   const handleInvoiceSerialChange = async (rowId, selectedSerial) => {
     if (Array.isArray(selectedSerial)) {
-        selectedSerial = selectedSerial[0];
+      selectedSerial = selectedSerial[0];
     }
 
     const row = data.find(r => r.id === rowId);
     if (!row || !row.bill_of_entry_number || !row.invoice_no || !selectedSerial) {
-        console.log("❌ Missing required data:", { row, selectedSerial });
-        return;
+      console.log("❌ Missing required data:", { row, selectedSerial });
+      return;
     }
 
     const key = `${row.bill_of_entry_number}_${row.invoice_no}_${selectedSerial}`;
 
     // Fetch the latest balance_quantity from removal table
     const { data: removalData, error } = await supabase
-        .from("removal")
-        .select("balance_quantity")
-        .eq("bill_of_entry_number", row.bill_of_entry_number)
-        .eq("invoice_no", row.invoice_no)
-        .eq("invoice_serial", selectedSerial)
-        .order("created_at", { ascending: false }) 
-        .limit(1);
+      .from("removal")
+      .select("balance_quantity")
+      .eq("bill_of_entry_number", row.bill_of_entry_number)
+      .eq("invoice_no", row.invoice_no)
+      .eq("invoice_serial", selectedSerial)
+      .order("created_at", { ascending: false })
+      .limit(1);
 
     let latestBalance = removalData?.length > 0 ? removalData[0].balance_quantity : null;
 
     if (latestBalance === null) {
-        latestBalance = quantityReceived[key] || 0;
+      latestBalance = quantityReceived[key] || 0;
     }
 
     console.log("🔎 Searching with key:", key);
     console.log("✅ Latest Balance Quantity:", latestBalance);
 
     const previousRows = data.filter(r =>
-        r.bill_of_entry_number === row.bill_of_entry_number &&
-        r.invoice_no === row.invoice_no &&
-        r.invoice_serial === selectedSerial
+      r.bill_of_entry_number === row.bill_of_entry_number &&
+      r.invoice_no === row.invoice_no &&
+      r.invoice_serial === selectedSerial
     );
 
     const totalClearedInPreviousRows = previousRows.reduce((sum, r) => sum + (r.quantity_cleared || 0), 0);
@@ -189,45 +216,45 @@ fetchRemovalData();
 
     // Update data state, ensuring initial_balance is reset
     setData(prevData =>
-        prevData.map(r =>
-            r.id === rowId
-                ? {
-                    ...r,
-                    invoice_serial: selectedSerial,
-                    balance_quantity: adjustedBalance >= 0 ? adjustedBalance : 0,
-                    initial_balance: adjustedBalance >= 0 ? adjustedBalance : 0,
-                    quantity_cleared: 0
-                }
-                : r
-        )
+      prevData.map(r =>
+        r.id === rowId
+          ? {
+            ...r,
+            invoice_serial: selectedSerial,
+            balance_quantity: adjustedBalance >= 0 ? adjustedBalance : 0,
+            initial_balance: adjustedBalance >= 0 ? adjustedBalance : 0,
+            quantity_cleared: 0
+          }
+          : r
+      )
     );
-};
+  };
 
 
-const handleQuantityClearedChange = (rowId, value) => {
-  setData(prevData =>
-    prevData.map(row => {
-      if (row.id === rowId) {
-        const clearedQuantity = value !== "" ? parseFloat(value) : 0; 
-        const initialBalance = row.initial_balance ?? row.balance_quantity;
-        
-        let newBalance = initialBalance - clearedQuantity;
-        if (newBalance < 0) newBalance = 0;
+  const handleQuantityClearedChange = (rowId, value) => {
+    setData(prevData =>
+      prevData.map(row => {
+        if (row.id === rowId) {
+          const clearedQuantity = value !== "" ? parseFloat(value) : 0;
+          const initialBalance = row.initial_balance ?? row.balance_quantity;
 
-        console.log("newBalance", newBalance);
-        console.log("value", value);
+          let newBalance = initialBalance - clearedQuantity;
+          if (newBalance < 0) newBalance = 0;
 
-        return {
-          ...row,
-          quantity_cleared: clearedQuantity, 
-          balance_quantity: newBalance, 
-          initial_balance: initialBalance, 
-        };
-      }
-      return row;
-    })
-  );
-};
+          console.log("newBalance", newBalance);
+          console.log("value", value);
+
+          return {
+            ...row,
+            quantity_cleared: clearedQuantity,
+            balance_quantity: newBalance,
+            initial_balance: initialBalance,
+          };
+        }
+        return row;
+      })
+    );
+  };
 
 
 
@@ -248,24 +275,24 @@ const handleQuantityClearedChange = (rowId, value) => {
       row.invoice_no &&
       row.invoice_serial &&
       row.format_importer &&
-      columns.every(col => row[col.id] !== null && row[col.id] !== undefined) 
+      columns.every(col => row[col.id] !== null && row[col.id] !== undefined)
     );
-    
-  
-    console.log("Validating data:", data); 
-  
+
+
+    console.log("Validating data:", data);
+
     if (!isValid) {
       setSnackbarMessage('Please fill all fields before submitting!');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
       return;
     }
-  
+
     const filteredData = data.map(({ initial_balance, ...rest }) => rest);
-  
+
     try {
       const { error } = await supabase.from("removal").insert(filteredData);
-  
+
       if (error) {
         console.error("Supabase Error:", error);
         setSnackbarMessage("Submission failed! " + error.message);
@@ -280,16 +307,16 @@ const handleQuantityClearedChange = (rowId, value) => {
       setSnackbarMessage("An unexpected error occurred.");
       setSnackbarSeverity("error");
     }
-  
+
     setOpenSnackbar(true);
     console.log("filteredData:", filteredData);
   };
-  
-  
+
+
   return (
     <Paper sx={{ width: "100%", padding: 2, overflowX: "auto" }}>
       <Box sx={{ textAlign: "center", marginBottom: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#1F618D" }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#2C3E50" }}>
           Removals
         </Typography>
       </Box>
@@ -297,6 +324,7 @@ const handleQuantityClearedChange = (rowId, value) => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#1F618D', color: '#FFFFFF' }}>Importer</TableCell>
               <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#1F618D', color: '#FFFFFF' }}>Bill of Entry Number</TableCell>
               <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#1F618D', color: '#FFFFFF' }}>Invoice No</TableCell>
               <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#1F618D', color: '#FFFFFF' }}>Invoice Serial</TableCell>
@@ -315,18 +343,37 @@ const handleQuantityClearedChange = (rowId, value) => {
                 {/* Bill of Entry Dropdown */}
                 <TableCell>
                   <Select
+                    fullWidth
+                    value={row.format_importer || ""}
+                    onChange={(e) => handleFormatImporterChange(row.id, e.target.value)}
+                    displayEmpty
+                    size="small"
+                  >
+                    <MenuItem value="" disabled>Select Client</MenuItem>
+                    {Object.keys(formatToBillEntries).map((format) => (
+                      <MenuItem key={format} value={format}>
+                        {format}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </TableCell>
+
+                <TableCell>
+                  <Select
                     value={row.bill_of_entry_number || ""}
                     onChange={(e) => handleBillOfEntryChange(row.id, e.target.value)}
                     fullWidth
                     sx={{ width: 150 }}
+                    disabled={!row.format_importer} // disable until format_importer selected
                   >
-                    {billEntries.map((entry) => (
+                    {(formatToBillEntries[row.format_importer] || []).map((entry) => (
                       <MenuItem key={entry} value={entry}>
                         {entry}
                       </MenuItem>
                     ))}
                   </Select>
                 </TableCell>
+
 
                 {/* Invoice Number (Auto-filled, Read-only) */}
                 <TableCell>

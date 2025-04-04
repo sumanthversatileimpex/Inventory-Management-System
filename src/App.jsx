@@ -8,7 +8,7 @@ import NavBar from "./components/NavBar";
 import ReceiptsTable from "./pages/data_entry/ReceiptsTable";
 import Handling_And_Storage from "./pages/data_entry/Handling_And_Storage";
 import Removals from "./pages/data_entry/Removals";
-import ClientsInfo from "./pages/ClientsInfo";
+import ClientsInfo from "./pages/data_entry/ClientsInfo";
 import DataRetrieval from "./pages/data_retrivals/DataRetrieval";
 import DataRetrieval_handling from "./pages/data_retrivals/DataRetrieval_handling";
 import DataRetrieval_removals from "./pages/data_retrivals/DataRetrieval_removals";
@@ -20,6 +20,9 @@ import Signup from "./pages/Signup";
 import PrivateRoute from "./components/PrivateRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import AuthInventory from "./pages/AuthIventory";
+import LoadingSpinner from "./components/LoadingSpinner";
+import BalanceAndExtensions from "./pages/data_entry/Balance_And_Extensions";
+import DataRetrieval_balance from "./pages/data_retrivals/DataRetrieval_balance";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // Initially null to track loading state
@@ -33,7 +36,8 @@ const App = () => {
   }, []);
 
   if (isAuthenticated === null) {
-    return <div>Loading...</div>; // Prevents flickering while checking auth state
+    return <LoadingSpinner/>;
+    // return <div>loading...</div>;
   }
   
   return (
@@ -58,6 +62,8 @@ const App = () => {
           <Route path="/retrieve_removals" element={<PrivateRoute><DataRetrieval_removals /></PrivateRoute>} />
           <Route path="/retrieve_clients" element={<PrivateRoute><DataRetrieval_clientsInfo /></PrivateRoute>} />
           <Route path="/mtr_info" element={<PrivateRoute><MTR_Information /></PrivateRoute>} />
+          <Route path="/balance_ext" element={<PrivateRoute><BalanceAndExtensions /></PrivateRoute>} />
+          <Route path="/retrieve_balance" element={<PrivateRoute><DataRetrieval_balance /></PrivateRoute>} />
           {/* <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} /> */}

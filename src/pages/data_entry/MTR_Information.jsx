@@ -18,12 +18,14 @@ const MTR_Information = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const isMobile = useMediaQuery("(max-width:600px)");
+  const [balanceData,setBalanceData] = useState([]);
 
   useEffect(() => {
     fetchImporters();
     fetchData();
     fetchHandlingData();
     fetchRemovalData();
+    fetchBalanceData();
   }, [formatImporter, startDate, endDate]);
 
   const fetchImporters = async () => {
@@ -138,9 +140,46 @@ const MTR_Information = () => {
     }
   };
 
+  const fetchBalanceData = async () => {
+    let query = supabase.from("balance_and_extensions").select("*");
+  
+    if (formatImporter) {
+      query = query.eq("format_importer", formatImporter);
+    }
+  
+    if (startDate && endDate) {
+      query = query.gte("order_date", startDate).lte("order_date", endDate);
+    }
+  
+    const { data, error } = await query;
+    if (error) {
+      console.error("Error fetching balance data:", error);
+    } else {
+      setBalanceData(data); // or use this to generate PDF directly
+    }
+  };
+  
+  console.log("Balance Data:", balanceData);
+
   const generatePDF = async () => {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const clientInfo = await fetchClientDetails();
+
+    const bodyRows = balanceData.map(row => [
+      `${row.bill_of_entry_number || "N/A"} (${row.bill_of_entry_date || "N/A"})`,
+      `${row.bond_no || "N/A"} (${row.bond_date || "N/A"})`,
+      row.order_date || "N/A",
+      row.invoice_no || "N/A",
+      row.invoice_serial || "N/A",
+      row.goods_description || "N/A",
+      row.quantity || "0",
+      row.initial_bonding_expiry || "N/A",
+      row.extensions || "N/A",
+      row.bank_guarantee || "N/A",
+      row.bonding_expiry || "N/A",
+      row.remarks || "N/A"
+    ]);
+    
     // First Table (Header) page 1
     autoTable(doc, {
       startY: 10,
@@ -207,6 +246,7 @@ const MTR_Information = () => {
 
     doc.addPage();
 
+      // First Table (Data) page 2
     autoTable(doc, {
       startY: 10,
       head: [["FORM-A"]],
@@ -239,8 +279,9 @@ const MTR_Information = () => {
     removalData.forEach(row => {
       removalMap.set(row.bill_of_entry_no, row);
     });
-
-    // Second Table (Data) page 1
+    
+     // Second Table (Data) page 2
+  
     autoTable(doc, {
       startY: doc.lastAutoTable.finalY,
       head: [[
@@ -282,6 +323,8 @@ const MTR_Information = () => {
 
     doc.addPage();
 
+      // First Table (Data) page 3
+
     autoTable(doc, {
       startY: 10,
       head: [["FORM-B"]],
@@ -309,39 +352,53 @@ const MTR_Information = () => {
       }
     });
 
-    // Second Table (Data) page 1
-
-
-    // Generate the table
+    // Second Table (Data) page 3
+ 
     autoTable(doc, {
-      startY: doc.lastAutoTable ? doc.lastAutoTable.finalY : 10, // Positioning
+      startY: doc.lastAutoTable.finalY,
       head: [
         [
-          { content: "Bill of Entry No. and Date", rowSpan: 2, styles: { halign: "center" } },
-          { content: "Bond No. And Date", rowSpan: 2, styles: { halign: "center" } },
-          { content: "Date of order under section 60(1)", rowSpan: 2, styles: { halign: "center" } },
+          { content: "Bill of Entry No. & Date", rowSpan: 2, styles: { halign: "center" } },
+          { content: "Bond No. & Date", rowSpan: 2, styles: { halign: "center" } },
+          { content: "Order Date", rowSpan: 2, styles: { halign: "center" } },
+    
           { content: "Balance goods in the warehouse", colSpan: 4, styles: { halign: "center" } },
+    
           { content: "Date Of Expiry Of Initial Bonding Period", rowSpan: 2, styles: { halign: "center" } },
-          { content: "Details Of extensions (Period Extended Upto)", colSpan: 4, rowSpan: 2, styles: { halign: "center" } },
-          { content: "Details Of Bank Guarantee", rowSpan: 2, styles: { halign: "center" } },
-          { content: "Date Of Expiry Of Bonding Period", rowSpan: 2, styles: { halign: "center" } },
+          { content: "Extensions (Period Extended Upto)", rowSpan: 2, styles: { halign: "center" } },
+          { content: "Bank Guarantee", rowSpan: 2, styles: { halign: "center" } },
           { content: "Remarks", rowSpan: 2, styles: { halign: "center" } },
         ],
         [
-          { content: "Invoice no.", styles: { halign: "center" } },
+          { content: "Invoice No.", styles: { halign: "center" } },
           { content: "Sl No.", styles: { halign: "center" } },
           { content: "Description of Goods", styles: { halign: "center" } },
           { content: "Quantity", styles: { halign: "center" } },
-        ]
+        ],
       ],
-      body: [
-        ["N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"]
-      ],
+    
+      body: balanceData.map(row => [
+        `${row.bill_of_entry_number || "N/A"} (${row.bill_of_entry_date || "N/A"})`,
+        `${row.bond_no || "N/A"} (${row.bond_date || "N/A"})`,
+        row.order_date || "N/A",
+    
+        row.invoice_no || "N/A",
+        row.invoice_serial || "N/A",
+        row.goods_description || "N/A",
+        row.quantity || "0",
+    
+        row.initial_bonding_expiry || "N/A",
+        row.extensions || "N/A",
+        row.bank_guarantee || "N/A",
+        row.remarks || "N/A",
+      ]),
+    
       styles: { fontSize: 6, cellPadding: 2, valign: "middle", halign: "center", textColor: 0 },
       headStyles: { fillColor: [255, 255, 255], textColor: 0, fontSize: 6, fontStyle: "bold", lineWidth: 0.2, lineColor: [0, 0, 0] },
       bodyStyles: { lineWidth: 0.2, lineColor: [0, 0, 0], fillColor: [255, 255, 255], textColor: 0 },
       alternateRowStyles: { fillColor: [255, 255, 255] },
     });
+    
 
     doc.save("FORM_A.pdf");
     setFormatImporter("");
@@ -424,7 +481,12 @@ const MTR_Information = () => {
           </span>
         </Tooltip>
       </Box>
+    </Box>
 
+  );
+};
+
+export default MTR_Information;
 
 
       {/* <TableContainer component={Paper}>
@@ -487,10 +549,3 @@ const MTR_Information = () => {
         </TableBody>
       </Table>
     </TableContainer>  */}
-
-    </Box>
-
-  );
-};
-
-export default MTR_Information;

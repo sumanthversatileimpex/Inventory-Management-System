@@ -12,7 +12,8 @@ import {
   Snackbar,
   Alert
 } from "@mui/material";
-import itlLogo from "/images/ITL Logo.jpg";
+import itlLogo from "/images/logo-Intime-Logistics-full.png";
+import { sendApprovalEmail } from "../util/api";
 
 const AuthInventory = () => {
   const [tab, setTab] = useState(0);
@@ -23,16 +24,15 @@ const AuthInventory = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   
-  // Toast notification state
+  
   const [toast, setToast] = useState({
     open: false,
     message: "",
-    severity: "success", // 'success' or 'error'
+    severity: "success",
   });
 
   const handleCloseToast = () => {
     setToast({ ...toast, open: false });
-    // Clear form fields if it was a success
     if (toast.severity === 'success') {
       setEmail("");
       setPassword("");
@@ -59,30 +59,6 @@ const AuthInventory = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     
-    // First check if user already exists
-    // const { data: existingUsers, error: lookupError } = await supabase
-    //   .from('profiles')
-    //   .select('*')
-    //   .or(`email.eq.${email},username.eq.${username}`);
-
-    // if (lookupError) {
-    //   setToast({
-    //     open: true,
-    //     message: "Error checking existing users",
-    //     severity: "error",
-    //   });
-    //   return;
-    // }
-
-    // if (existingUsers && existingUsers.length > 0) {
-    //   setToast({
-    //     open: true,
-    //     message: "User with this email or username already exists",
-    //     severity: "error",
-    //   });
-    //   return;
-    // }
-
     // Proceed with signup if user doesn't exist
     const { data, error } = await supabase.auth.signUp({
       email, 
@@ -119,15 +95,54 @@ const AuthInventory = () => {
     }
   };
 
+
+
+  // const handleSignup = async (e) => {
+  //   e.preventDefault();
+  
+  //   const { error } = await supabase.from("pending_users").insert([
+  //     { username, phone, email, password } 
+  //   ]);
+  
+  //   if (error) {
+  //     setToast({ open: true, message: error.message, severity: "error" });
+  //     return;
+  //   }
+  
+  //   await sendApprovalEmail(username, phone, email);
+  
+  //   setToast({
+  //     open: true,
+  //     message: "Your request has been sent for approval. You'll be notified once approved.",
+  //     severity: "success",
+  //   });
+  
+  //   setUsername("");
+  //   setPhone("");
+  //   setEmail("");
+  //   setPassword("");
+  // };
+  
+
   return (
-    <Box minHeight='100vh' sx={{ background: "linear-gradient(to right, #003366, #004080, #0059b3, #0073e6)" }}>
-      {/* Toast Notification */}
+    <Box minHeight='100vh' 
+    sx={{
+      background: `url('images/banner.jpg')`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundBlendMode: "darken", 
+      backgroundColor: "rgba(0, 0, 0, 0.1)",
+      display: "flex",
+      justifyContent: { xs: "center", md: "center" }, 
+      alignItems: "start",
+      pr: { md: 4 }
+    }}>
       <Snackbar
         open={toast.open}
         autoHideDuration={6000}
         onClose={handleCloseToast}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ mt: 6 }}
+        sx={{ mt: 2 }}
       >
         <Alert 
           onClose={handleCloseToast} 
@@ -147,10 +162,22 @@ const AuthInventory = () => {
         </Alert>
       </Snackbar>
 
-      <Container maxWidth="xs">
-        <Paper elevation={3} sx={{ p: 3, mt: 8, textAlign: "center" }}>
+      <Container maxWidth="xs"
+       sx={{
+        display: "flex",
+        justifyContent: "start", // Keeps form centered
+        ml: { md: "auto" }, // Pushes to right only on medium+ screens
+        mr: { md: 10 } // Adds margin from the right only on medium+ screens
+      }}>
+        <Paper elevation={3} sx={{ p: 4, mt: 10, textAlign: "center",
+           borderRadius: "10px",  
+           backgroundColor: "rgba(255, 255, 255, 1)", 
+           opacity:"0.85",
+           display: "flex",
+           flexDirection: "column",
+          }}>
           <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-            <img src={itlLogo} alt="Company Logo" style={{ width: "100px", height: "auto" }} />
+            <img src={itlLogo} alt="Company Logo" style={{ width: "200px", height: "auto" }} />
           </Box>
           <Tabs value={tab} onChange={(e, newTab) => setTab(newTab)} centered>
             <Tab label="Login" />

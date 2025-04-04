@@ -7,7 +7,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 
 const columns = [ 
-  { id: 'format_importer', label: 'Format Importer', type: 'text' },
+  { id: 'format_importer', label: 'Importer', type: 'text' },
   { id: 'order_date', label: 'Order Date', type: 'date', placeholder: 'Order Date' },
   // { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number' },
   // { id: 'invoice_no', label: 'Invoice No', type: 'text' },
@@ -61,7 +61,7 @@ const columns = [
   
     return (
       <Paper sx={{ padding: 2, overflowX: 'auto' }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 }}>Removal Data</Typography>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 , color:"#2C3E50"}}>Removal Data</Typography>
         
         {/* Filter Section */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginBottom: 2 }}>

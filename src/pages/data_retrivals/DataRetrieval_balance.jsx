@@ -8,35 +8,24 @@ import {
 import { useTheme } from '@mui/material/styles';
 
 const columns = [
-  // { id: 'client_name', label: 'Client Name', type: 'text' },
-  { id: 'format_importer', label: 'Importer', type: 'text' },
-  { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number' },
-  { id: 'bill_of_entry_date', label: 'Bill of Entry Date', type: 'date' },
-  { id: 'invoice_no', label: 'Invoice No', type: 'text' },
-  { id: 'invoice_serial', label: 'Invoice Serial', type: 'text' },
-  { id: 'activity', label: 'Activity', type: 'text', placeholder: 'Activity' }, 
-  { id: 'customs_station', label: 'Customs Station', type: 'text' },
-  { id: 'bond_no', label: 'Bond No', type: 'number' },
-  { id: 'bond_date', label: 'Bond Date', type: 'date' },
-  { id: 'goods_description', label: 'Goods Description', type: 'text' },
-  { id: 'packages_description', label: 'Packages', type: 'text' },
-  { id: 'marks_numbers', label: 'Marks & No.', type: 'text' },
-  { id: 'weight', label: 'Weight', type: 'number' },
-  { id: 'unit', label: 'Unit', type: 'select', options: ['kg', 'liter'] },
-  { id: 'quantity', label: 'Quantity', type: 'number' },
-  { id: 'value_inr', label: 'Value (INR)', type: 'number' },
-  { id: 'duty_assessed', label: 'Duty (INR)', type: 'number' },
-  { id: 'order_date', label: 'Order Date', type: 'date' },
-  { id: 'warehouse_code_address', label: 'Warehouse Code', type: 'text' },
-  { id: 'transport_registration', label: 'Transport Reg.', type: 'text' },
-  { id: 'otl_no', label: 'OTL No.', type: 'text' },
-  { id: 'quantity_adviced', label: 'Qty Advised', type: 'number' },
-  { id: 'quantity_received', label: 'Qty Received', type: 'number' },
-  { id: 'breakage_damage', label: 'Breakage', type: 'text' },
-  { id: 'shortage', label: 'Shortage', type: 'text' }
+  { id: "initial_bonding_expiry", label: "Date Of Expiry Of Initial Bonding Period", type: "date" },
+  { id: 'format_importer', label: 'Importer', type: 'select', placeholder: 'Select Client' },
+  { id: "bill_of_entry_number", label: "Bill of Entry No.", type: "select" },
+  { id: "bill_of_entry_date", label: "Bill of Entry Date", type: "date" },
+  { id: "bond_no", label: "Bond No.", type: "number" },
+  { id: "bond_date", label: "Bond Date", type: "date" },
+  { id: "order_date", label: "Date of Order (Sec 60(1))", type: "date" },
+  { id: "invoice_no", label: "Invoice No.", type: "text" },
+  { id: "invoice_serial", label: "Invoice Serial", type: "select" },
+  { id: "goods_description", label: "Description of Goods", type: "text" },
+  { id: "quantity", label: "Quantity", type: "number" },
+  { id: "extensions", label: "Details Of Extensions", type: "text" },
+  { id: "bank_guarantee", label: "Details Of Bank Guarantee", type: "text" },
+  { id: "bonding_expiry", label: "Date Of Expiry Of Bonding Period", type: "date" },
+  { id: "remarks", label: "Remarks", type: "text" },
 ];
 
-const DataRetrieval = () => {
+const DataRetrieval_balance = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [clients, setClients] = useState([]);
@@ -48,7 +37,7 @@ const DataRetrieval = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md')); 
   useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase.from('reciept1').select('*');
+      const { data, error } = await supabase.from('balance_and_extensions').select('*');
       if (!error) {
         setData(data);
         setFilteredData(data);
@@ -78,7 +67,7 @@ const DataRetrieval = () => {
 
   return (
     <Paper sx={{ padding: 2, overflowX: 'auto' }}>
-      <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 , color:"#2C3E50" }}>Receipts Data</Typography>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 , color:"#2C3E50" }}> Balance & Extensions Data</Typography>
 
       <Stack 
         direction={isMobile ? 'column' : 'row'} 
@@ -147,4 +136,4 @@ const DataRetrieval = () => {
   );
 };
 
-export default DataRetrieval;
+export default DataRetrieval_balance;

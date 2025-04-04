@@ -8,11 +8,12 @@ import {
 
 const columns = [
   // { id: 'client_name', label: 'Client Name', type: 'text', placeholder: 'Client Name' },
-  { id: 'format_importer', label: 'Format Importer', type: 'select', placeholder: 'Select Client' },
+  { id: 'format_importer', label: 'Importer', type: 'select', placeholder: 'Select Client' },
   { id: 'bill_of_entry_number', label: 'Bill of Entry Number', type: 'number', placeholder: 'Bill Of Entry No.', rules: { min: 1 } },
   { id: 'bill_of_entry_date', label: 'Bill of Entry Date', type: 'date', placeholder: 'Bill Of Entry Date' },
   { id: 'invoice_no', label: 'Invoice Number', type: 'text', placeholder: 'Invoice No.' },
-  { id: 'invoice_serial', label: 'Invoice Serial', type: 'text', placeholder: 'Invoice Serial' },
+  { id: 'invoice_serial', label: 'Invoice Serial', type: 'text', placeholder: 'Invoice Serial' }, 
+  { id: 'activity', label: 'Activity', type: 'text', placeholder: 'Activity' }, 
   { id: 'customs_station', label: 'Customs Station', type: 'text', placeholder: 'Customs Station' },
   { id: 'bond_no', label: 'Bond No', type: 'number', placeholder: 'Bond Number', rules: { min: 1 } },
   { id: 'bond_date', label: 'Bond Date', type: 'date', placeholder: 'Bond Date' },
@@ -158,7 +159,7 @@ const ReceiptsTable = () => {
   return (
     <Paper sx={{ width: '100%', padding: 2, overflowX: 'auto' }}>
       <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1F618D' }}>Receipts</Typography>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', color:"#2C3E50" }}>Receipts</Typography>
       </Box>
 
       <TableContainer sx={{ maxHeight: 500, overflow: 'auto', borderRadius: '7px' }}>
@@ -191,7 +192,19 @@ const ReceiptsTable = () => {
                           <MenuItem key={index} value={client}>{client}</MenuItem>
                         ))}
                       </Select>
-                    ) : (
+                    ) : column.id === 'activity' ? ( // Dropdown for Activity
+                      <Select
+                        fullWidth
+                        value={row[column.id] || ''}
+                        onChange={(e) => handleInputChange(row.id, column.id, e.target.value)}
+                        displayEmpty
+                        size="small"
+                      >
+                        <MenuItem value="" disabled>Select Activity</MenuItem>
+                        <MenuItem value="65">65</MenuItem>
+                        <MenuItem value="Non 65">Non 65</MenuItem>
+                      </Select>
+                    ) :  (
                       <TextField
                         variant="outlined"
                         size="small"
