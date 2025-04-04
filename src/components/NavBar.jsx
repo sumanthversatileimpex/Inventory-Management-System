@@ -199,6 +199,11 @@ const NavBar = () => {
                     <ListItemText primary="Clients Info" />
                   </ListItemButton>
                 </ListItem>
+              <ListItem disablePadding>
+                  <ListItemButton component={Link} to="/balance_ext">
+                    <ListItemText primary="Balance & Extensions" />
+                  </ListItemButton>
+                </ListItem>
               </List>
 
               {/* Data Retrieval Dropdown */}
@@ -226,6 +231,11 @@ const NavBar = () => {
                 <ListItem disablePadding>
                   <ListItemButton component={Link} to="/retrieve_clients">
                     <ListItemText primary="Clients Data" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton component={Link} to="/retrieve_balance">
+                    <ListItemText primary="Balance & Extensions Data" />
                   </ListItemButton>
                 </ListItem>
               </List>
