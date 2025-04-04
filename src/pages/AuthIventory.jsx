@@ -13,6 +13,7 @@ import {
   Alert
 } from "@mui/material";
 import itlLogo from "/images/logo-Intime-Logistics-full.png";
+import banner from "/images/banner.jpg"
 import { sendApprovalEmail } from "../util/api";
 
 const AuthInventory = () => {
@@ -127,7 +128,7 @@ const AuthInventory = () => {
   return (
     <Box minHeight='100vh' 
     sx={{
-      background: `url('images/banner.jpg')`,
+      backgroundImage: `url(${banner})`,
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundBlendMode: "darken", 
