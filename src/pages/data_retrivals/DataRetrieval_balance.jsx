@@ -34,36 +34,98 @@ const DataRetrieval_balance = () => {
   const [endDate, setEndDate] = useState('');
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md')); 
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+   
   useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase.from('balance_and_extensions').select('*');
-      if (!error) {
-        setData(data);
-        setFilteredData(data);
-        const uniqueClients = [...new Set(data.map(row => row.format_importer))];
-        setClients(uniqueClients);
+      const today = new Date();
+      const elevenMonthsAgo = new Date(today.setMonth(today.getMonth() - 11));
+
+      const [
+        { data: balanceData, error: balanceError },
+        { data: receiptData, error: receiptError },
+        { data: removalData, error: removalError },
+      ] = await Promise.all([
+        supabase.from('balance_and_extensions').select('*'),
+        supabase.from('reciept1').select('*'),
+        supabase.from('removal').select('*'),
+      ]);
+
+      console.log("balanceData",balanceData)
+      console.log("receiptData",receiptData)
+      console.log("removalData",removalData)
+      if (balanceError || receiptError || removalError) {
+        console.error('Error fetching data:', { balanceError, receiptError, removalError });
+        return;
       }
+
+      // Filter receipt1 table
+      const validReceiptBOEs = receiptData
+        .filter(row => row.activity === 'Non 65')
+        .filter(row => new Date(row.order_date) <= elevenMonthsAgo)
+        .map(row => ({
+          boe: row.bill_of_entry_number,
+          importer: row.format_importer
+        }));
+        console.log("validReceiptBOEs",validReceiptBOEs)
+
+      // Filter removal table
+      const validRemovalBOEs = removalData
+        .filter(row => parseFloat(row.balance_quantity) > 0)
+        .map(row => ({
+          boe: row.bill_of_entry_number,
+          importer: row.format_importer
+        }));
+        console.log("validRemovalBOEs",validRemovalBOEs)
+      // Get common BOEs & importers from both
+      const validBOEKeys = validReceiptBOEs
+      .filter(receipt => 
+        validRemovalBOEs.some(removal =>
+          Number(removal.boe) === Number(receipt.boe) &&
+          removal.importer === receipt.importer
+        )
+      )
+      .map(item => `${item.importer}__${item.boe}`); 
+        console.log("validBOEKeys",validBOEKeys)
+        
+      // Filter balance_and_extensions
+      const fullyFiltered = balanceData.filter(row =>
+        validBOEKeys.includes(`${row.format_importer}__${row.bill_of_entry_number}`)
+      );
+       
+      // Set base & initial filtered data
+      setData(fullyFiltered);
+      setFilteredData(fullyFiltered);
+
+      // Extract unique clients
+      const uniqueClients = [...new Set(fullyFiltered.map(row => row.format_importer))];
+      setClients(uniqueClients);
     };
+
     fetchData();
   }, []);
 
+  console.log("clients",clients)
+  console.log("data",data)
+  console.log("filteredData",filteredData)
   const handleSearch = () => {
-    let filtered = data;
-    
+    let filtered = [...data];
+
     if (formatImporter) {
       filtered = filtered.filter(row => row.format_importer === formatImporter);
     }
 
     if (startDate && endDate) {
-      filtered = filtered.filter(row => 
+      filtered = filtered.filter(row =>
         new Date(row.order_date) >= new Date(startDate) &&
         new Date(row.order_date) <= new Date(endDate)
       );
     }
-    console.log("filtered",filtered)
+
+    console.log("Filtered on search:", filtered);
     setFilteredData(filtered);
   };
+
 
   return (
     <Paper sx={{ padding: 2, overflowX: 'auto' }}>
@@ -78,7 +140,7 @@ const DataRetrieval_balance = () => {
           options={clients}
           value={formatImporter}
           onChange={(event, newValue) => setformatImporter(newValue)}
-          renderInput={(params) => <TextField {...params} label="Format Importer Name" variant="outlined" />}
+          renderInput={(params) => <TextField {...params} label="Importer Name" variant="outlined" />}
           sx={{ width: isMobile ? '100%' : 300 }}
         />
 

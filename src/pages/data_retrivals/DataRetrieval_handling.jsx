@@ -64,12 +64,12 @@ function DataRetrieval_handling() {
   
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginBottom: 2 }}>
             <FormControl sx={{ minWidth: 300 }}>
-                <InputLabel id="format-importer-label">Format Importer Name</InputLabel>
+                <InputLabel id="format-importer-label">Importer Name</InputLabel>
                 <Select
                     labelId="format-importer-label"
                     id="format-importer"
                     value={formatImporter || ""}                    
-                    label="Format Importer Name"
+                    label="Importer Name"
                     onChange={(e) => setFormatImporter(e.target.value)}
                     MenuProps={{
                       PaperProps: {

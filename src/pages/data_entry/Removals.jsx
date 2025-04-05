@@ -9,8 +9,8 @@ import Autocomplete from '@mui/material/Autocomplete';
 const columns = [
   { id: "date_and_time_of_removal", label: "Date and Time of Removal", type: "datetime-local", placeholder: "Select date & time" },
   { id: "purpose_of_removal", label: "Purpose of Removal", type: "text", placeholder: "Enter purpose" },
-  { id: "bill_of_entry_no", label: "Shipping Bill of Entry No.", type: "text", placeholder: "Enter entry no." },
-  { id: "bill_of_entry_date", label: "Shipping Bill of Entry Date", type: "date", placeholder: "Select entry date" },
+  { id: "bill_of_entry_no", label: "Shipping Bill No.", type: "text", placeholder: "Enter entry no." },
+  { id: "bill_of_entry_date", label: "Shipping Bill Date", type: "date", placeholder: "Select entry date" },
   { id: "quantity_cleared", label: "Quantity Cleared", type: "number", placeholder: "Enter cleared qty", },
   { id: "value", label: "Value", type: "number", width: 100, placeholder: "Enter value" },
   { id: "duty", label: "Duty", type: "number", width: 100, placeholder: "Enter duty" },

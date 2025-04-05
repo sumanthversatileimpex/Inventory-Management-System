@@ -58,6 +58,7 @@ const MTR_Information = () => {
     if (error) {
       console.error("Error fetching data:", error);
     } else {
+      console.log("recipt-----------",data)
       setData(data);
     }
   };
@@ -92,6 +93,7 @@ const MTR_Information = () => {
     if (error) {
       console.error("Error fetching data:", error);
     } else {
+      console.log("removal-----------",data)
       setRemovalData(data);
     }
   };
@@ -127,7 +129,7 @@ const MTR_Information = () => {
         }
       
         // Format the required fields
-        const formattedString = `F. No. ${client.file_no} / BOND DT. ${client.file_date} / PERMANENT CODE: ${client.warehouse_code} - ${client.client_name}, Unit: ${client.address}${dateRangeString ? ` (${dateRangeString})` : ''}`;
+        const formattedString = `F. No. ${client.file_no} / BOND DT. ${client.file_date} / WAREHOUSE CODE: ${client.warehouse_code} - ${client.client_name}, Unit: ${client.address}${dateRangeString ? ` (${dateRangeString})` : ''}`;
       
         console.log("Formatted String:", formattedString);
         return formattedString;
@@ -141,22 +143,86 @@ const MTR_Information = () => {
   };
 
   const fetchBalanceData = async () => {
-    let query = supabase.from("balance_and_extensions").select("*");
+    const today = new Date();
+  const elevenMonthsAgo = new Date(today.setMonth(today.getMonth() - 11));
+
+  // Fetch all relevant tables
+  const [
+    { data: balanceData, error: balanceError },
+    { data: receiptData, error: receiptError },
+    { data: removalData, error: removalError },
+  ] = await Promise.all([
+    supabase.from('balance_and_extensions').select('*'),
+    supabase.from('reciept1').select('*'),
+    supabase.from('removal').select('*'),
+  ]);
+
+  if (balanceError || receiptError || removalError) {
+    console.error('Error fetching data:', { balanceError, receiptError, removalError });
+    return;
+  }
+
+  // Step 1: Filter receipt1 - must be 'Non 65' and order_date older than 11 months
+  const validReceiptBOEs = receiptData
+    .filter(row => row.activity === 'Non 65')
+    .filter(row => new Date(row.order_date) <= elevenMonthsAgo)
+    .map(row => ({
+      boe: Number(row.bill_of_entry_number),
+      importer: row.format_importer,
+    }));
+
+  // Step 2: Filter removal - balance_quantity must be > 0
+  const validRemovalBOEs = removalData
+    .filter(row => parseFloat(row.balance_quantity) > 0)
+    .map(row => ({
+      boe: Number(row.bill_of_entry_number),
+      importer: row.format_importer,
+    }));
+
+  // Step 3: Get only matching importer + BOE combinations in both
+  const validBOEKeys = validReceiptBOEs
+    .filter(receipt =>
+      validRemovalBOEs.some(removal =>
+        removal.boe === receipt.boe &&
+        removal.importer === receipt.importer
+      )
+    )
+    .map(item => `${item.importer}__${item.boe}`);
+
+  // Step 4: Apply this filter to balanceData
+  let filtered = balanceData.filter(row =>
+    validBOEKeys.includes(`${row.format_importer}__${Number(row.bill_of_entry_number)}`)
+  );
+
+  // Step 5: Further filter based on user search input (if any)
+  if (formatImporter) {
+    filtered = filtered.filter(row => row.format_importer === formatImporter);
+  }
+
+  if (startDate && endDate) {
+    filtered = filtered.filter(row =>
+      new Date(row.order_date) >= new Date(startDate) &&
+      new Date(row.order_date) <= new Date(endDate)
+    );
+  }
+
+  setBalanceData(filtered); 
+    // let query = supabase.from("balance_and_extensions").select("*");
   
-    if (formatImporter) {
-      query = query.eq("format_importer", formatImporter);
-    }
+    // if (formatImporter) {
+    //   query = query.eq("format_importer", formatImporter);
+    // }
   
-    if (startDate && endDate) {
-      query = query.gte("order_date", startDate).lte("order_date", endDate);
-    }
+    // if (startDate && endDate) {
+    //   query = query.gte("order_date", startDate).lte("order_date", endDate);
+    // }
   
-    const { data, error } = await query;
-    if (error) {
-      console.error("Error fetching balance data:", error);
-    } else {
-      setBalanceData(data); // or use this to generate PDF directly
-    }
+    // const { data, error } = await query;
+    // if (error) {
+    //   console.error("Error fetching balance data:", error);
+    // } else {
+    //   setBalanceData(data); // or use this to generate PDF directly
+    // }
   };
   
   console.log("Balance Data:", balanceData);
@@ -164,21 +230,28 @@ const MTR_Information = () => {
   const generatePDF = async () => {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const clientInfo = await fetchClientDetails();
-
-    const bodyRows = balanceData.map(row => [
+    const tableBody = balanceData.length > 0
+  ? balanceData.map(row => [
       `${row.bill_of_entry_number || "N/A"} (${row.bill_of_entry_date || "N/A"})`,
       `${row.bond_no || "N/A"} (${row.bond_date || "N/A"})`,
       row.order_date || "N/A",
+
       row.invoice_no || "N/A",
       row.invoice_serial || "N/A",
       row.goods_description || "N/A",
       row.quantity || "0",
+
       row.initial_bonding_expiry || "N/A",
       row.extensions || "N/A",
       row.bank_guarantee || "N/A",
-      row.bonding_expiry || "N/A",
-      row.remarks || "N/A"
-    ]);
+      row.remarks || "N/A",
+    ])
+  : [[
+      "N/A", "N/A", "N/A", 
+      "N/A", "N/A", "N/A", "N/A", 
+      "N/A", "N/A", "N/A", "N/A"
+    ]];
+
     
     // First Table (Header) page 1
     autoTable(doc, {
@@ -377,21 +450,7 @@ const MTR_Information = () => {
         ],
       ],
     
-      body: balanceData.map(row => [
-        `${row.bill_of_entry_number || "N/A"} (${row.bill_of_entry_date || "N/A"})`,
-        `${row.bond_no || "N/A"} (${row.bond_date || "N/A"})`,
-        row.order_date || "N/A",
-    
-        row.invoice_no || "N/A",
-        row.invoice_serial || "N/A",
-        row.goods_description || "N/A",
-        row.quantity || "0",
-    
-        row.initial_bonding_expiry || "N/A",
-        row.extensions || "N/A",
-        row.bank_guarantee || "N/A",
-        row.remarks || "N/A",
-      ]),
+      body: tableBody,
     
       styles: { fontSize: 6, cellPadding: 2, valign: "middle", halign: "center", textColor: 0 },
       headStyles: { fillColor: [255, 255, 255], textColor: 0, fontSize: 6, fontStyle: "bold", lineWidth: 0.2, lineColor: [0, 0, 0] },
@@ -416,12 +475,12 @@ const MTR_Information = () => {
         
         <Grid item xs={12} sm={6} md={4}>
           <FormControl sx={{ width: "auto" }}>
-            <InputLabel>Format Importer Name</InputLabel>
+            <InputLabel>Importer Name</InputLabel>
             <Select
               labelId="demo-simple-select-label"
               id="demo-simple-select"
               value={formatImporter}
-              label="Format Importer Name"
+              label="Importer Name"
               onChange={(e) => setFormatImporter(e.target.value)}
               MenuProps={{
                 PaperProps: {

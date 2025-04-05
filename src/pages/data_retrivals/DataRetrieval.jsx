@@ -89,7 +89,7 @@ const DataRetrieval = () => {
           options={clients}
           value={formatImporter}
           onChange={(event, newValue) => setformatImporter(newValue)}
-          renderInput={(params) => <TextField {...params} label="Format Importer Name" variant="outlined" />}
+          renderInput={(params) => <TextField {...params} label="Importer Name" variant="outlined" />}
           sx={{ width: isMobile ? '100%' : 300 }}
         />
 

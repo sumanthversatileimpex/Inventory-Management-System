@@ -31,6 +31,7 @@ const NavBar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [dataEntryAnchor, setDataEntryAnchor] = useState(null);
   const [dataRetrievalAnchor, setDataRetrievalAnchor] = useState(null);
+  const [reportAnchor, setReportAnchor] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { logout, user, userData } = useAuth();
 
@@ -134,9 +135,24 @@ const NavBar = () => {
                 </Menu>
 
                 {/* MTR Information */}
-                <Button color="inherit" component={Link} to="/mtr_info" sx={{ color: "white" }}>
-                  MTR
+                <Button
+                  color="inherit"
+                  endIcon={<ArrowDropDownIcon />}
+                  onClick={(event) => handleMenuOpen(event, setReportAnchor)}
+                  sx={{ color: "white" }}
+                >
+                 Reports
                 </Button>
+                <Menu
+                  anchorEl={reportAnchor}
+                  open={Boolean(reportAnchor)}
+                  onClose={() => handleMenuClose(setReportAnchor)}
+                >
+                  <MenuItem component={Link} onClick={() => handleMenuClose(setReportAnchor)} to="/mtr_info">MTR</MenuItem>
+                </Menu>
+                {/* <Button color="inherit" component={Link} to="/mtr_info" sx={{ color: "white" }}>
+                  MTR
+                </Button> */}
               </>
             )}
 
@@ -239,12 +255,19 @@ const NavBar = () => {
                   </ListItemButton>
                 </ListItem>
               </List>
-
+              
+              <ListItem disablePadding>
+                <ListItemButton>
+                  <ListItemText primary="Reports" />
+                </ListItemButton>
+              </ListItem>
+              <List sx={{ pl: 4 }}>
               <ListItem disablePadding>
                 <ListItemButton component={Link} to="/mtr_info">
                   <ListItemText primary="MTR" />
                 </ListItemButton>
               </ListItem>
+              </List>
             </List>
           </Box>
         </Drawer>

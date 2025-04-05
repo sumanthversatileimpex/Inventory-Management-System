@@ -66,12 +66,12 @@ const columns = [
         {/* Filter Section */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginBottom: 2 }}>
           <FormControl sx={{ minWidth: 300 }}>
-           <InputLabel id="demo-simple-select-label">Format Importer Name</InputLabel>
+           <InputLabel id="demo-simple-select-label">Importer Name</InputLabel>
             <Select
              labelId="demo-simple-select-label"
              id="demo-simple-select"
               value={formatImporter}
-              label="Format Importer Name"
+              label="Importer Name"
               onChange={(e) => setFormatImporter(e.target.value)}
               MenuProps={{
                 PaperProps: {
